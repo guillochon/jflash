@@ -1,0 +1,3 @@
+These routines analyze HDF5 output files from FLASH 3.0+. Included are routines for generating images of slices and volumes, for summing variables, and for performing other sorts of post-processing.
+
+Dfanning's Coyote IDL library is required for these routines to work. Additionally, the FLASH fidlr3.0 routines must be in your IDL path as well.
