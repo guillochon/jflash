@@ -310,7 +310,7 @@ for f=rng[0],rng[1],rng[2] do begin
 	printf, lun, histo, format=format_str
 	free_lun,lun
 
-	if (keyword_set(showplot) then begin
+	if (keyword_set(showplot)) then begin
 		set_plot, 'x'
 		plot, histo
 	endif
