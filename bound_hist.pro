@@ -1,7 +1,7 @@
 ;pruned_orbit.dat needs to be generated from make_track_file in mode 3.
 pro bound_hist, basename, nb=nb, resamp=resamp, rhocut=rhocut, min_hist=min_hist, max_hist=max_hist, $
 	oversamp=oversamp, ofile=ofile, linear=linear, calc_extras=calc_extras, include_selfbound=include_selfbound, $
-	include_unbound=include_unbound, range=range, fprefix=fprefix
+	include_unbound=include_unbound, range=range, fprefix=fprefix, showplot=showplot
 
 g = 6.67428d-8
 if (~keyword_set(nb)) then nb = 100
@@ -19,7 +19,7 @@ endif else begin
 endelse
 if (~keyword_set(range)) then begin
 	filename=basename
-	rng = [0,0]
+	rng = [0,0,1]
 endif else begin
 	if (n_elements(range) eq 2) then begin
 		rng = [range[0], range[1], 1]
@@ -310,8 +310,10 @@ for f=rng[0],rng[1],rng[2] do begin
 	printf, lun, histo, format=format_str
 	free_lun,lun
 
-	set_plot, 'x'
-	plot, histo
+	if (keyword_set(showplot) then begin
+		set_plot, 'x'
+		plot, histo
+	endif
 endfor
 
 end
