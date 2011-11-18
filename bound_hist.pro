@@ -1,6 +1,7 @@
 ;pruned_orbit.dat needs to be generated from make_track_file in mode 3.
 pro bound_hist, filename, nb=nb, resamp=resamp, rhocut=rhocut, min_hist=min_hist, max_hist=max_hist, $
-	oversamp=oversamp, ofile=ofile, linear=linear, calc_extras=calc_extras, include_selfbound=include_selfbound, include_unbound=include_unbound
+	oversamp=oversamp, ofile=ofile, linear=linear, calc_extras=calc_extras, include_selfbound=include_selfbound, include_unbound=include_unbound, $
+	output=output
 
 g = 6.67428d-8
 if (~keyword_set(nb)) then nb = 100
@@ -9,6 +10,7 @@ if (~keyword_set(rhocut)) then rhocut = 1.d-10
 if (~keyword_set(oversamp)) then oversamp = 0
 if (~keyword_set(ofile)) then ofile = 'pruned_orbit.dat'
 if (~keyword_set(efile)) then efile = 'extras.dat'
+if (~keyword_set(output)) then output = 'dmde.dat'
 if (keyword_set(include_unbound)) then linear=1
 
 nrows = file_lines(ofile)
@@ -26,6 +28,7 @@ dvar = where(strmatch(unk_names, 'dens') eq 1)
 vxvar = where(strmatch(unk_names, 'velx') eq 1)
 vyvar = where(strmatch(unk_names, 'vely') eq 1)
 vzvar = where(strmatch(unk_names, 'velz') eq 1)
+evar = where(strmatch(unk_names, 'eint') eq 1)
 gvar = where(strmatch(unk_names, 'gpot') eq 1)
 jread_amr, filename, VAR_NAME='all', TREE=tree, DATA=unk, PARAMETERS=params
 
@@ -51,9 +54,20 @@ bndvec = odata[13:18,tindex]
 peakvec = odata[25:30,tindex]
 totvec = odata[19:24,tindex]
 
+ptobr = sqrt(total(ptvec - obvec)^2)
+
+ptaccelx = g*m/ptobr^3*(ptvec[0] - obvec[0])
+ptaccely = g*m/ptobr^3*(ptvec[1] - obvec[1])
+ptaccelz = g*m/ptobr^3*(ptvec[2] - obvec[2])
+
 ptvec = totvec - obvec + ptvec
 
+
 numblocks = params.totblocks
+
+maxgpot = min(unk[gvar,*,*,*,*])
+gminbbl = !values.d_infinity
+gpotcut = !values.d_infinity
 
 ;First, do the calculation with no sampling to find min and max.
 if (~keyword_set(min_hist) or ~keyword_set(max_hist)) then begin
@@ -79,7 +93,7 @@ if (~keyword_set(min_hist) or ~keyword_set(max_hist)) then begin
 		ptpos[2,*,*,*] = transpose(cmreplicate(ptz, [nc, nc]), [2, 1, 0])
 		ptr = sqrt(total(ptpos^2, 1))
 
-		gptpot = g*m/ptr
+		gptpot = -g*m/ptr
 
 		peakpos = dblarr(3,nc,nc,nc)
 		peakx = peakvec[0] - xcoords
@@ -91,7 +105,22 @@ if (~keyword_set(min_hist) or ~keyword_set(max_hist)) then begin
 		peakr = sqrt(total(peakpos^2, 1))
 
 		if (~keyword_set(include_selfbound)) then begin
+			dx = xcoords[1] - xcoords[0]
 			gpot = reform(unk[gvar,n,*,*,*])
+			eint = reform(unk[evar,n,*,*,*])
+
+			dgpotdx = gpot
+			dgpotdy = gpot
+			dgpotdz = gpot
+			dgpotdx[1:6,*,*] = (gpot[1:6,*,*] - gpot[0:5,*,*])/2.0
+			dgpotdx[0,*,*] = gpot[1,*,*] - gpot[0,*,*]
+			dgpotdx[7,*,*] = gpot[7,*,*] - gpot[6,*,*]
+			dgpotdy[*,1:6,*] = (gpot[*,1:6,*] - gpot[*,0:5,*])/2.0
+			dgpotdy[*,0,*] = gpot[*,1,*] - gpot[*,0,*]
+			dgpotdy[*,7,*] = gpot[*,7,*] - gpot[*,6,*]
+			dgpotdz[*,*,1:6] = (gpot[*,*,1:6] - gpot[*,*,0:5])/2.0
+			dgpotdz[*,*,0] = gpot[*,*,1] - gpot[*,*,0]
+			dgpotdz[*,*,7] = gpot[*,*,7] - gpot[*,*,6]
 	
 			avelx = reform(unk[vxvar,n,*,*,*]) - peakvec[3]
 			avely = reform(unk[vyvar,n,*,*,*]) - peakvec[4]
@@ -99,10 +128,23 @@ if (~keyword_set(min_hist) or ~keyword_set(max_hist)) then begin
 
 			;ptfrac = peakpos[0,*,*,*]*ptpos[0,*,*,*] + peakpos[1,*,*,*]*ptpos[1,*,*,*] + peakpos[2,*,*,*]*ptpos[2,*,*,*] 
 			;ptfrac = transpose(peakpos) # ptpos
-			bindbal = gpot/peakr + abs(gptpot/ptr)
-			selfbound = 0.5*(avelx^2 + avely^2 + avelz^2) + gpot	
+			;rdotg = (peakpos[0,*,*,*]*(dgpotdx/dx) + $
+			;		 peakpos[1,*,*,*]*(dgpotdy/dx) + $
+			;		 peakpos[2,*,*,*]*(dgpotdz/dx))/peakr
+			;bindbal = rdotg + abs(gptpot/ptr)
+			bindbal = (peakpos[0,*,*,*]*(dgpotdx/dx + (gptpot/ptr^2*ptx - ptaccelx))) + $
+					  (peakpos[1,*,*,*]*(dgpotdy/dx + (gptpot/ptr^2*pty - ptaccely))) + $
+					  (peakpos[2,*,*,*]*(dgpotdz/dx + (gptpot/ptr^2*ptz - ptaccelz)))
+			;selfbound = (0.5*(avelx^2 + avely^2 + avelz^2) + eint) + gpot ;Factor of 2.0 comes from Dib 2007, section 2.
+			selfbound = (0.5*(avelx^2 + avely^2 + avelz^2)) + gpot ;Factor of 2.0 comes from Dib 2007, section 2.
+			;print, avelx[0], avely[0], avelz[0], eint[0], rdotg[0]
 			
 			;if (max(selfbound) LT 0) then continue
+			minbbl = min(abs(bindbal), bbloc)
+			if (minbbl lt gminbbl) then begin
+				gminbbl = minbbl
+				gpotcut = gpot[bbloc]
+			endif
 		endif
 	
 		dens = reform(unk[dvar,n,*,*,*])
@@ -110,7 +152,7 @@ if (~keyword_set(min_hist) or ~keyword_set(max_hist)) then begin
 		hvely = reform(unk[vyvar,n,*,*,*]) - ptvec[4]
 		hvelz = reform(unk[vzvar,n,*,*,*]) - ptvec[5]
 		
-		temp = -0.5*(hvelx^2 + hvely^2 + hvelz^2) + gptpot
+		temp = -0.5*(hvelx^2 + hvely^2 + hvelz^2) - gptpot
 	
 		;if (max(temp) LT 0) then continue
 	
@@ -158,6 +200,8 @@ if (keyword_set(calc_extras)) then begin
 	bndz = double(0.)
 endif
 
+print, gpotcut, maxgpot
+
 for n=0L, (numblocks-1) do begin
 	if (tree[n].nodetype NE 1) then continue
 		
@@ -179,7 +223,7 @@ for n=0L, (numblocks-1) do begin
 	ptpos[2,*,*,*] = transpose(cmreplicate(ptz, [nc, nc]), [2, 1, 0])
 	ptr = sqrt(total(ptpos^2, 1))
 
-	gptpot = g*m/ptr
+	gptpot = -g*m/ptr
 
 	peakpos = dblarr(3,nc,nc,nc)
 	peakx = peakvec[0] - xcoords
@@ -191,8 +235,24 @@ for n=0L, (numblocks-1) do begin
 	peakr = sqrt(total(peakpos^2, 1))
 
 	if (~keyword_set(include_selfbound)) then begin
+		dx = (xcoords[n_elements(xcoords)-1] - xcoords[0]) / (nc - 1.0)
 		gpot = unk[gvar,n,*,*,*]
 		gpot = congrid(reform(gpot), nc, nc, nc, /center)
+		eint = unk[evar,n,*,*,*]
+		eint = congrid(reform(eint), nc, nc, nc, /center)
+
+		dgpotdx = gpot
+		dgpotdy = gpot
+		dgpotdz = gpot
+		dgpotdx[1:6,*,*] = (gpot[1:6,*,*] - gpot[0:5,*,*])/2.0
+		dgpotdx[0,*,*] = gpot[1,*,*] - gpot[0,*,*]
+		dgpotdx[7,*,*] = gpot[7,*,*] - gpot[6,*,*]
+		dgpotdy[*,1:6,*] = (gpot[*,1:6,*] - gpot[*,0:5,*])/2.0
+		dgpotdy[*,0,*] = gpot[*,1,*] - gpot[*,0,*]
+		dgpotdy[*,7,*] = gpot[*,7,*] - gpot[*,6,*]
+		dgpotdz[*,*,1:6] = (gpot[*,*,1:6] - gpot[*,*,0:5])/2.0
+		dgpotdz[*,*,0] = gpot[*,*,1] - gpot[*,*,0]
+		dgpotdz[*,*,7] = gpot[*,*,7] - gpot[*,*,6]
 
 		avelx = unk[vxvar,n,*,*,*] - peakvec[3]
 		avely = unk[vyvar,n,*,*,*] - peakvec[4]
@@ -203,8 +263,16 @@ for n=0L, (numblocks-1) do begin
 
 		;ptfrac = peakpos[0,*,*,*]*ptpos[0,*,*,*] + peakpos[1,*,*,*]*ptpos[1,*,*,*] + peakpos[2,*,*,*]*ptpos[2,*,*,*] 
 		;ptfrac = transpose(peakpos) # ptpos
-		bindbal = gpot/peakr + abs(gptpot/ptr)
-		selfbound = 0.5*(avelx^2 + avely^2 + avelz^2) + gpot	
+		;rdotg = (peakpos[0,*,*,*]*(dgpotdx/dx) + $
+		;		 peakpos[1,*,*,*]*(dgpotdy/dx) + $
+		;		 peakpos[2,*,*,*]*(dgpotdz/dx))/peakr
+		;bindbal = rdotg + abs(gptpot/ptr)
+		;bindbal = (peakpos[0,*,*,*]*(dgpotdx/dx + (gptpot/ptr^2*ptx - ptaccelx))) + $
+		;		  (peakpos[1,*,*,*]*(dgpotdy/dx + (gptpot/ptr^2*pty - ptaccely))) + $
+		;		  (peakpos[2,*,*,*]*(dgpotdz/dx + (gptpot/ptr^2*ptz - ptaccelz)))
+		;print, dgpotdx[0]/dx, gptpot[0]/ptr[0]^2*ptx[0], ptaccelx
+		;selfbound = (0.5*(avelx^2 + avely^2 + avelz^2) + eint) + gpot - gpotcut ;Factor of 2.0 comes from Dib 2007, section 2.
+		selfbound = (0.5*(avelx^2 + avely^2 + avelz^2)) + gpot ;Factor of 2.0 comes from Dib 2007, section 2.
 	endif
 
 	dens = congrid(reform(unk[dvar,n,*,*,*]), nc, nc, nc, /center)
@@ -238,7 +306,7 @@ for n=0L, (numblocks-1) do begin
     hvelx = hvelx - ptvec[3]
     hvely = hvely - ptvec[4]	
     hvelz = hvelz - ptvec[5]	
-	temp = -0.5*(hvelx^2 + hvely^2 + hvelz^2) + gptpot
+	temp = -0.5*(hvelx^2 + hvely^2 + hvelz^2) - gptpot
 
 	;if (max(temp) LT 0) then continue
 
@@ -275,13 +343,13 @@ if (keyword_set(calc_extras)) then begin
 	bndz = bndz / mbound
 endif
 
-openw,lun,'dmde.dat', /get_lun
+openw,lun,output, /get_lun
 printf, lun, nb, format='(I0,X)'
-format_str = '(' + string(nb) + '(E0,X))'
-printf, lun, total(histo), format='(E0,X)'
-printf, lun, mbound, format='(E0,X)'
-if (keyword_set(calc_extras)) then printf, lun, bndx, bndy, bndz, format='(3(E0,X))'
-printf, lun, time, format='(E0,X)'
+format_str = '(' + string(nb) + '(E22.14,X))'
+printf, lun, total(histo), format='(E22.14,X)'
+printf, lun, mbound, format='(E22.14,X)'
+if (keyword_set(calc_extras)) then printf, lun, bndx, bndy, bndz, format='(3(E22.14,X))'
+printf, lun, time, format='(E22.14,X)'
 printf, lun, -hist_bins, format=format_str 
 printf, lun, histo, format=format_str
 free_lun,lun

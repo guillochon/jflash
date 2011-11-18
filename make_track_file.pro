@@ -15,13 +15,13 @@ pro make_track_file, filename, offset=offset, outfile=outfile, mode=mode, stride
 	free_lun, lun
 	time = data[0,*]
 	length = n_elements(time)
-	i = 1
+	i = 1L
 	res_cnt = 0
 	while i lt length do begin
 		if time[i] lt time[i-1] then begin
 			include = make_array(length, value = 1, /integer)
 			si = -1
-			for j = 0, i - 1 do begin
+			for j = 0L, i - 1 do begin
 				if time[j] eq time[i] then begin
 					si = j
 				endif
@@ -36,7 +36,7 @@ pro make_track_file, filename, offset=offset, outfile=outfile, mode=mode, stride
 			time = data[0,*]
 			length = n_elements(time)
 
-			i = 1
+			i = 1L
 			res_cnt = res_cnt + 1
 		endif
 		i = i + 1
