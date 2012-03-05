@@ -216,14 +216,14 @@ for f=rng[0],rng[1],rng[2] do begin
 
 		if (~keyword_set(include_selfbound)) then begin
 			gpot = unk[gvar,n,*,*,*]
-			gpot = congrid(reform(gpot), nc, nc, nc, /center, /minus_one)
+			gpot = congrid(reform(gpot), nc, nc, nc, /center)
 
 			avelx = unk[vxvar,n,*,*,*] - peakvec[3]
 			avely = unk[vyvar,n,*,*,*] - peakvec[4]
 			avelz = unk[vzvar,n,*,*,*] - peakvec[5]
-			avelx = congrid(reform(avelx), nc, nc, nc, /center, /minus_one)
-			avely = congrid(reform(avely), nc, nc, nc, /center, /minus_one)
-			avelz = congrid(reform(avelz), nc, nc, nc, /center, /minus_one)
+			avelx = congrid(reform(avelx), nc, nc, nc, /center)
+			avely = congrid(reform(avely), nc, nc, nc, /center)
+			avelz = congrid(reform(avelz), nc, nc, nc, /center)
 
 			;ptfrac = peakpos[0,*,*,*]*ptpos[0,*,*,*] + peakpos[1,*,*,*]*ptpos[1,*,*,*] + peakpos[2,*,*,*]*ptpos[2,*,*,*] 
 			;ptfrac = transpose(peakpos) # ptpos
@@ -231,7 +231,7 @@ for f=rng[0],rng[1],rng[2] do begin
 			selfbound = 0.5*(avelx^2 + avely^2 + avelz^2) + gpot	
 		endif
 
-		dens = congrid(reform(unk[dvar,n,*,*,*]), nc, nc, nc, /center, /minus_one)
+		dens = congrid(reform(unk[dvar,n,*,*,*]), nc, nc, nc, /center)
 		mass = dens*(tree[n].size[0]/nc)^3.
 
 		if (~keyword_set(include_selfbound)) then begin
@@ -256,9 +256,9 @@ for f=rng[0],rng[1],rng[2] do begin
 		
 		;if (max(selfbound) LT 0) then continue
 
-		hvelx = congrid(reform(unk[vxvar,n,*,*,*]), nc, nc, nc, /center, /minus_one)
-		hvely = congrid(reform(unk[vyvar,n,*,*,*]), nc, nc, nc, /center, /minus_one)
-		hvelz = congrid(reform(unk[vzvar,n,*,*,*]), nc, nc, nc, /center, /minus_one)
+		hvelx = congrid(reform(unk[vxvar,n,*,*,*]), nc, nc, nc, /center)
+		hvely = congrid(reform(unk[vyvar,n,*,*,*]), nc, nc, nc, /center)
+		hvelz = congrid(reform(unk[vzvar,n,*,*,*]), nc, nc, nc, /center)
 		hvelx = hvelx - ptvec[3]
 		hvely = hvely - ptvec[4]	
 		hvelz = hvelz - ptvec[5]	
