@@ -51,7 +51,7 @@ pro make_track_file, filename, offset=offset, outfile=outfile, mode=mode, stride
 		; New orbit.dat format
 		;path = data[31+offset:33+offset,0:length:stride]
 	endif else if mode eq 2 then begin
-		path = data[25+offset:27+offset,0:length-1:stride]+data[1+offset:3+offset,0:length-1:stride]-data[7+offset:9+offset,0:length-1:stride]
+		path = data[19+offset:21+offset,0:length-1:stride]+data[1+offset:3+offset,0:length-1:stride]-data[7+offset:9+offset,0:length-1:stride]
 	endif else if mode eq 3 then begin
 		path = data[*,0:length-1:stride]
 	endif else begin

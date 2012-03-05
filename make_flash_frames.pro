@@ -174,9 +174,9 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 		endif else begin
 			jread_amr, filename, var_name='none', parameters=params
 			time = params.time
-			xr = xrange + interpol(trackx, trackt, time)
-			yr = yrange + interpol(tracky, trackt, time)
-			zr = zrange + interpol(trackz, trackt, time)
+			xr = xrange + interpol(trackx, trackt, time, /quad)
+			yr = yrange + interpol(tracky, trackt, time, /quad)
+			zr = zrange + interpol(trackz, trackt, time, /quad)
 			relaxes = [[xrange[0], xrange[1]], [yrange[0], yrange[1]], [zrange[0], zrange[1]]]
 		endelse
 		if keyword_set(vol) then begin

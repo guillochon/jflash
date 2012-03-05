@@ -465,6 +465,11 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 	erase, color=fsc_color('black',/nodisplay)
 	polyfill, [1.0,1.0,0.0,0.0,1.0], [1.0,0.0,0.0,1.0,1.0], /normal, color=fsc_color('black',/nodisplay)
+
+	pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xrange[1] - xrange[0])
+	pos[1] = pos[1] + (pos[3] - pos[1])*(ycoord[0] - yrange[0])/(yrange[1] - yrange[0])
+	pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xrange[1] - xrange[0])
+	pos[3] = pos[1] + (pos[3] - pos[1])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(yrange[1] - yrange[0])
 	!p.position = pos
 	if slicetype eq 'minor' or slicetype eq 'major' then begin
 		tvimage, image3d, position=pos,/nointerpolation
