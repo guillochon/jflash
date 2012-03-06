@@ -83,7 +83,7 @@
 pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsize=simsize,$
 	slicetype=slicetype,rangemin=rangemin,rangemax=rangemax,imgsizex=imgsizex,imgsizey=imgsizey,$
 	fprefix=fprefix,exactsize=exactsize,exactmult=exactmult,xticks=xticks,yticks=yticks,zticks=zticks,$
-	log=log,colorbarcolor=colorbarcolor,contourvar=contourvar,thrvar=thrvar,thrval=thrval,sample=sample,stride=stride,$
+	log=log,colorbarcolor=colorbarcolor,contourvar=contourvar,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,stride=stride,$
 	charsize=charsize,symrange=symrange,lmin=lmin,annotatepos=annotatepos,output=output,hidetime=hidetime,$
 	ax=ax,az=az,revolvestep=revolvestep,revolvetype=revolvetype,thrtype=thrtype,special=special,cellsize=cellsize,$
 	boxaxes=boxaxes,memefficient=memefficient,hideaxes=hideaxes,zoom=zoom,boxscale=boxscale,indexlength=indexlength,$
@@ -138,7 +138,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			byr = yrange + interpol(tracky, trackt, time)
 			bzr = zrange + interpol(trackz, trackt, time)
 			print, 'Loading base state'
-			base_state = double(loaddata(base_file,var,xrange=bxr,yrange=byr,zrange=bzr,sample=sample,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,/double))
+			base_state = double(loaddata(base_file,var,xrange=bxr,yrange=byr,zrange=bzr,sample=sample,lwant=lwant,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,/double))
 			refcoor = [[bxr[0], bxr[1]], [byr[0], byr[1]], [bzr[0], bzr[1]]]
 			for i=1, n_elements(base_files)-1 do begin
 				base_file = basename + '_' + string(base_files[i], format=numformat)
@@ -147,7 +147,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				bxr = xrange + interpol(trackx, trackt, time)
 				byr = yrange + interpol(tracky, trackt, time)
 				bzr = zrange + interpol(trackz, trackt, time)
-				tmp_state = double(loaddata(base_file,var,xrange=bxr,yrange=byr,zrange=bzr,sample=sample,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,/double))
+				tmp_state = double(loaddata(base_file,var,xrange=bxr,yrange=byr,zrange=bzr,sample=sample,lwant=lwant,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,/double))
 				mc = double(xcoords[n_elements(xcoords)-1] - xcoords[0])/n_elements(xcoords)
 				x0 = (bxr[0] - refcoor[0,0]) mod mc
 				y0 = (byr[0] - refcoor[0,1]) mod mc
@@ -181,7 +181,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 		endelse
 		if keyword_set(vol) then begin
 			make_flash_vol,filename,var,my_ct,xr,yr,zr,ax=curfly[0],az=curfly[1],log=log,rangemin=rangemin,rangemax=rangemax,$
-				output=output,sample=sample,thrvar=thrvar,thrval=thrval,charsize=charsize,revolvestep=revolvestep,hideticklabels=hideticklabels,$
+				output=output,sample=sample,lwant=lwant,thrvar=thrvar,thrval=thrval,charsize=charsize,revolvestep=revolvestep,hideticklabels=hideticklabels,$
 				revolvetype=revolvetype,imgsizex=imgsizex,imgsizey=imgsizey,fprefix=fprefix,thrtype=thrtype,special=special,$
 				simsize=simsize,cellsize=cellsize,boxaxes=boxaxes,hideaxes=hideaxes,zoom=curfly[2],boxscale=boxscale,ctswitch=ctswitch,$
 				xticks=xticks,yticks=yticks,zticks=zticks,custom_rot=custom_rot,hidecolorbar=hidecolorbar,hidetime=hidetime,mirror=mirror,$
@@ -198,7 +198,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			endif
 		endif else begin
 			make_flash_slice,filename,var,my_ct,xr,yr,zr,simsize=simsize,slicetype=slicetype,$
-				rangemin=rangemin,rangemax=rangemax,contourvar=contourvar,thrvar=thrvar,thrval=thrval,sample=sample,$
+				rangemin=rangemin,rangemax=rangemax,contourvar=contourvar,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,$
 				log=log,colorbarcolor=colorbarcolor,imgsizex=imgsizex,imgsizey=imgsizey,hidetime=hidetime,$
 				fprefix=fprefix,exactsize=exactsize,exactmult=exactmult,charsize=charsize,xticks=xticks,yticks=yticks,$
 				ambval=ambval,symrange=symrange,lmin=lmin,annotatepos=annotatepos,output=output,hidecolorbar=hidecolorbar,$

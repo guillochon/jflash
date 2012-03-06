@@ -52,7 +52,7 @@
 pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
     simsize=simsize,slicetype=slicetype,rangemin=rangemin,$
     rangemax=rangemax,pos=pos,contourvar=contourvar,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,$
-    thrvar=thrvar,thrval=thrval,thrtype=thrtype,sample=sample,imgsizex=imgsizex,imgsizey=imgsizey,$
+    thrvar=thrvar,thrval=thrval,thrtype=thrtype,sample=sample,lwant=lwant,imgsizex=imgsizex,imgsizey=imgsizey,$
     exactsize=exactsize,fprefix=fprefix,extdata=extdata,datatime=datatime,$
     log=log,colorbarcolor=colorbarcolor,charsize=charsize,hidetime=hidetime,$
     hidecolorbar=hidecolorbar,ambval=ambval,exactmult=exactmult,symrange=symrange,lmin=lmin,xticks=xticks,yticks=yticks,$
@@ -174,14 +174,14 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		if (n_elements(var) gt 1) then begin
 			for i=0,n_elements(var)-1 do begin
 				load_flash_var, tmpslice, filename, var[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, subtractavg=subtractavgi, $
+					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 					xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 					trackfile=trackfile, memefficient=memefficient
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
-				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, subtractavg=subtractavgi, $
+				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 				xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 				trackfile=trackfile, memefficient=memefficient
 		endelse
@@ -206,9 +206,9 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	if keyword_set(fieldvarx) then begin
 		load_flash_var, fieldslicex, filename, fieldvarx, xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
+			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
 		load_flash_var, fieldslicey, filename, fieldvary, xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
+			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
 	endif
 
 	slice = reform(slice)
@@ -258,7 +258,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			endfor
 			if thrloaded eq 0 then begin
 				load_flash_var, newthrslice, filename, thrvar, xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, simsize=simsize, $
+					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, simsize=simsize, $
 					refcoor=refcoor, orbinfo=orbinfo
 				thrslice[*,*,*,i] = newthrslice
 			endif	
@@ -271,7 +271,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endelse
 		if n_elements(contourslice) eq 0 then begin
 			load_flash_var, contourslice, filename, contourvar, xrange, yrange, zrange, dens=dens, temp=temp, $
-				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, simsize=simsize, refcoor=refcoor, $
+				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, refcoor=refcoor, $
 				orbinfo=orbinfo
 		endif
 	endif
@@ -503,12 +503,12 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 					color=plotcolor, position=pos, xticks=xticks, yticks=yticks
 				if special eq 'velyzrot' then begin
 					load_flash_var, dens, filename, 'dens', xrange, yrange, zrange, dens=dens, temp=temp, $
-						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, refcoor=refcoor
+						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor
 					load_flash_var, vely, filename, 'vely', xrange, yrange, zrange, dens=dens, temp=temp, $
-						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, $
+						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, $
 						zcoords=zcoords, ycoords=ycoords, refcoor=refcoor
 					load_flash_var, velz, filename, 'velz', xrange, yrange, zrange, dens=dens, temp=temp, $
-						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, refcoor=refcoor
+						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor
 					vely = reform(vely)
 					vely = vely - avg(vely[where(temp lt 1e5)])
 					velz = reform(velz)
