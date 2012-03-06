@@ -1,6 +1,6 @@
 pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sliceplane, slicetype=slicetype, $
 	dens=dens, temp=temp, velx=velx, vely=vely, velz=velz, pres=pres, gpot=gpot,$
-	simsize=simsize, time=time, log=log, sample=sample, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords,$
+	simsize=simsize, time=time, log=log, sample=sample,lwant=lwant, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords,$
 	memefficient=memefficient,subtractavg=subtractavg,orbinfo=orbinfo,refcoor=refcoor, special=special, base_state=base_state,$
 	trackfile=trackfile
 
@@ -29,7 +29,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
    		var eq 'gpresz' or var eq 'gpresyzmag' or var eq 'pp' or var eq 'cno' or var eq 'he' or var eq 'nuc' or $
 		var eq 'gpresz_tidez' then begin
 		if n_elements(temp) eq 0 then begin
-			temp = (jloaddata(filename,'temp',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+			temp = (jloaddata(filename,'temp',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		dims = size(temp, /dimensions)
 		if var eq 'temp' then begin
@@ -42,7 +42,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 					 'protdens','gpotener','eintener','torque','torqmom','mach','csnd','acom','acomx','acomy','acomz','mass',$
 					 'selfbound','kinpresratio','kinpresdiff','enuctot','a20a32dens','a36a56dens','cfl','mominertia']) ge 1 then begin
 		if n_elements(dens) eq 0 then begin
-			dens = jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
+			dens = jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
 		endif
 		dims = size(dens, /dimensions)
 		if var eq 'dens' then begin
@@ -53,7 +53,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(velx) eq 0 then begin
-			velx = jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,$
+			velx = jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
 		endif
 		if var eq 'velx' then slice = velx
@@ -63,7 +63,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(vely) eq 0 then begin
-			vely = jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,$
+			vely = jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
 		endif
 		if var eq 'vely' then slice = vely
@@ -73,7 +73,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'gvelzz' or var eq 'bhbound' or var eq 'kine' or var eq 'momentum' or var eq 'selfbound' or $
 		var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(velz) eq 0 then begin
-			velz = (jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords))
+			velz = (jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords))
 		endif
 		slice = velz
 		if var eq 'absvelz' then slice = abs(velz)
@@ -81,7 +81,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	endif
 	if var eq 'gpot' or var eq 'selfbound' or var eq 'gpotener' then begin
 		if n_elements(gpot) eq 0 then begin
-			gpot = (jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))
+			gpot = (jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
 			;gpot = gpot/2. ;FLASH doubles this for some reason...
 		endif
 		slice = gpot
@@ -92,21 +92,21 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	endif
 	if total(strcmp(var, ['pres','kinpresratio','kinpresdiff','mach','csnd','cfl']), /pre) eq 1 then begin
 		if n_elements(pres) eq 0 then begin
-			pres = (jloaddata(filename,'pres',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))
+			pres = (jloaddata(filename,'pres',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
 		endif
 		if var eq 'pres' then slice = pres
 		dims = size(pres, /dimensions)
 	endif
 	if var eq 'enuc' or var eq 'enuctot' or var eq 'enucratio' then begin
 		if n_elements(enuc) eq 0 then begin
-			enuc = (jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords))
+			enuc = (jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords))
 		endif
 		if var eq 'enuc' then slice = enuc
 		dims = size(enuc, /dimensions)
 	endif
 	if var eq 'eint' or var eq 'eintener' or var eq 'enucratio' then begin
 		if n_elements(eint) eq 0 then begin
-			eint = (jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))
+			eint = (jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
 		endif
 		if var eq 'eint' then slice = eint
 		dims = size(eint, /dimensions)
@@ -114,10 +114,10 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 
 	;Special cases
 	if var eq 'UT_ratio' then begin
-		slice = double(jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))
-		kine = double(jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))^2.
-		kine = kine + double(jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))^2.
-		kine = kine + double(jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))^2.
+		slice = double(jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
+		kine = double(jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))^2.
+		kine = kine + double(jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))^2.
+		kine = kine + double(jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))^2.
 		slice = 2.*slice/kine
 		dims = size(slice, /dimensions)
 	endif
@@ -135,172 +135,172 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'ecooenucratio' then begin
-		slice = double(jloaddata(filename,'ecoo',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice/double(jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		slice = double(jloaddata(filename,'ecoo',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice/double(jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		slice[where(~finite(slice))] = 0.0
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'ecooratio' then begin
-		slice = double(jloaddata(filename,'ecoo',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice/double(jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		slice = double(jloaddata(filename,'ecoo',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice/double(jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'coonucdiff' then begin
-		slice = double(jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice-double(jloaddata(filename,'ecoo',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		slice = double(jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice-double(jloaddata(filename,'ecoo',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'a20a32dens' then begin
-		slice = double(jloaddata(filename,'ne20',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'mg24',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		slice = double(jloaddata(filename,'ne20',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'mg24',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		slice = slice*dens
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'a36a56dens' then begin
-		slice = double(jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		slice = double(jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		slice = slice*dens
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'composition' then begin
-		slice = double(jloaddata(filename,'he4',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))          * 4.0
-		slice = slice + double(jloaddata(filename,'c12',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))  * 12.0
-		slice = slice + double(jloaddata(filename,'o16',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))  * 16.0
-		slice = slice + double(jloaddata(filename,'ne20',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 20.0
-		slice = slice + double(jloaddata(filename,'mg24',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 24.0
-		slice = slice + double(jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 28.0
-		slice = slice + double(jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))  * 32.0
-		slice = slice + double(jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 36.0
-		slice = slice + double(jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 40.0
-		slice = slice + double(jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 44.0
-		slice = slice + double(jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 48.0
-		slice = slice + double(jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 52.0
-		slice = slice + double(jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)) * 56.0
+		slice = double(jloaddata(filename,'he4',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))          * 4.0
+		slice = slice + double(jloaddata(filename,'c12',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))  * 12.0
+		slice = slice + double(jloaddata(filename,'o16',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))  * 16.0
+		slice = slice + double(jloaddata(filename,'ne20',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 20.0
+		slice = slice + double(jloaddata(filename,'mg24',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 24.0
+		slice = slice + double(jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 28.0
+		slice = slice + double(jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))  * 32.0
+		slice = slice + double(jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 36.0
+		slice = slice + double(jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 40.0
+		slice = slice + double(jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 44.0
+		slice = slice + double(jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 48.0
+		slice = slice + double(jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 52.0
+		slice = slice + double(jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)) * 56.0
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'ash' then begin
-		slice = double(jloaddata(filename,'ne20',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'mg24',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		slice = slice + double(jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		slice = double(jloaddata(filename,'ne20',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'mg24',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		slice = slice + double(jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'forsdiff' then begin
-		fors = double(jloaddata(filename,'fors',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		for2 = double(jloaddata(filename,'for2',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		dens = double(jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		fors = double(jloaddata(filename,'fors',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		for2 = double(jloaddata(filename,'for2',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		dens = double(jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		slice = dens*(fors - for2)
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'c12o16ratio' then begin
-		c12 = double(jloaddata(filename,'c12',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		o16 = double(jloaddata(filename,'o16',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		c12 = double(jloaddata(filename,'c12',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		o16 = double(jloaddata(filename,'o16',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		slice = c12/o16
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'forsdens' then begin
-		fors = double(jloaddata(filename,'fors',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))
-		dens = double(jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		fors = double(jloaddata(filename,'fors',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
+		dens = double(jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		vol = (xcoords[1]-xcoords[0])^3.
 		slice = fors*dens*vol
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'for2dens' then begin
-		for2 = double(jloaddata(filename,'for2',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords))
-		dens = double(jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		for2 = double(jloaddata(filename,'for2',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
+		dens = double(jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		vol = (xcoords[1]-xcoords[0])^3.
 		slice = for2*dens*vol
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'forsratio' then begin
-		fors = double(jloaddata(filename,'fors',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
-		for2 = double(jloaddata(filename,'for2',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time))
+		fors = double(jloaddata(filename,'fors',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
+		for2 = double(jloaddata(filename,'for2',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time))
 		slice = (fors - for2)/fors
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'h1prot' then begin
-		slice = jloaddata(filename,'h1',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
-		slice = slice + jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		slice = jloaddata(filename,'h1',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
+		slice = slice + jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		dims = size(slice, /dimensions)
 	endif
 	if var eq 'h1dens' then begin
-		h1 = jloaddata(filename,'h1',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		h1 = jloaddata(filename,'h1',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*h1
 	endif
 	if var eq 'he4dens' then begin
-		he4 = jloaddata(filename,'he4',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		he4 = jloaddata(filename,'he4',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*he4
 	endif
 	if var eq 'c12dens' then begin
-		c12 = jloaddata(filename,'c12',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		c12 = jloaddata(filename,'c12',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*c12
 	endif
 	if var eq 'o16dens' then begin
-		o16 = jloaddata(filename,'o16',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		o16 = jloaddata(filename,'o16',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*o16
 	endif
 	if var eq 'ne20dens' then begin
-		ne20 = jloaddata(filename,'ne20dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		ne20 = jloaddata(filename,'ne20dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*ne20
 	endif
 	if var eq 'mg24dens' then begin
-		mg24 = jloaddata(filename,'mg24dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		mg24 = jloaddata(filename,'mg24dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*mg24
 	endif
 	if var eq 'si28dens' then begin
-		si28 = jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		si28 = jloaddata(filename,'si28',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*si28
 	endif
 	if var eq 's32dens' then begin
-		s32 = jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		s32 = jloaddata(filename,'s32',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*s32
 	endif
 	if var eq 'ar36dens' then begin
-		ar36 = jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		ar36 = jloaddata(filename,'ar36',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*ar36
 	endif
 	if var eq 'ca40dens' then begin
-		ca40 = jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		ca40 = jloaddata(filename,'ca40',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*ca40
 	endif
 	if var eq 'ti44dens' then begin
-		ti44 = jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		ti44 = jloaddata(filename,'ti44',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*ti44
 	endif
 	if var eq 'cr48dens' then begin
-		cr48 = jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		cr48 = jloaddata(filename,'cr48',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*cr48
 	endif
 	if var eq 'fe52dens' then begin
-		fe52 = jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		fe52 = jloaddata(filename,'fe52',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*fe52
 	endif
 	if var eq 'fe54dens' then begin
-		fe54 = jloaddata(filename,'fe54',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		fe54 = jloaddata(filename,'fe54',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*fe54
 	endif
 	if var eq 'ni56dens' then begin
-		ni56 = jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		ni56 = jloaddata(filename,'ni56',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*ni56
 	endif
 	if var eq 'neutdens' then begin
-		neut = jloaddata(filename,'neut',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		neut = jloaddata(filename,'neut',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*neut
 	endif
 	if var eq 'protdens' then begin
-		prot = jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+		prot = jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		slice = dens*prot
 	endif
 
@@ -366,9 +366,9 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	endif
 	if var eq 'rigid_deviation' then begin 
 		if n_elements(velx) eq 0 then $
-			velx = jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords)
+			velx = jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords)
 		if n_elements(vely) eq 0 then $
-			vely = jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time)
+			vely = jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time)
 		xcoords = xcoords - simsize/2.
 		ycoords = ycoords - simsize/2.
 		dims = size(velx, /dimensions)
@@ -445,12 +445,12 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		slice = dens * temp * 82544092.3
 	endif
 	if var eq 'csnd' then begin
-		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		;gamc = 2.0
 		slice = sqrt(gamc*pres/dens)
 	endif
 	if var eq 'cfl' then begin
-		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		csnd = sqrt(gamc*pres/dens)
 		slice = (xcoords[1] - xcoords[0])/(csnd + max(abs([[[velx]], [[vely]], [[velz]]]), dimension=3))
 	endif
@@ -918,7 +918,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 
 	if n_elements(slice) eq 0 then begin
 		varname = var ;jloaddata will alter var to be 4 characters, this is not desired
-		slice = reform(jloaddata(filename,varname,xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+		slice = reform(jloaddata(filename,varname,xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		dims = size(slice, /dimensions)
 	endif
 

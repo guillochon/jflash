@@ -1,5 +1,5 @@
 function jloaddata, filename, var, $
-                   SAMPLE=sample, $
+                   SAMPLE=sample, LWANT=lwant, $
                    DOUBLE=double, $
                    XCOORDS=x, YCOORDS=y, ZCOORDS=z, $
                    XLCOORD=xl, XRCOORD=xr, $
@@ -38,7 +38,7 @@ if n_elements(var) EQ 0 then begin
     return, -1
 endif
 
-if n_elements(sample) EQ 0 then sample = 0
+;if n_elements(sample) EQ 0 then sample = 0
 
 if n_elements(uniform_1d) EQ 0 then uniform_1d = 0
 
@@ -168,7 +168,7 @@ case params.ndim of
                                   XMERGE=x, YMERGE=y, $
                                   XRANGE=xrange, YRANGE=yrange, $
                                   TREE=tree, PARAMETERS=params, $
-                                  SAMPLE=sample, /DOUBLE)
+                                  SAMPLE=sample, LWANT=lwant, /DOUBLE)
             endif else begin
                 print, tree
 
@@ -179,7 +179,7 @@ case params.ndim of
                                   XMERGE=x, YMERGE=y, $
                                   XRANGE=xrange, YRANGE=yrange, $
                                   TREE=tree, PARAMETERS=params, $
-                                  SAMPLE=sample)
+                                  SAMPLE=sample, LWANT=lwant)
             endelse
         endif else if (params.geometry EQ "SPHERICAL") then begin
                 sData = merge_polar(reform(unk, params.totBlocks, $
@@ -189,7 +189,7 @@ case params.ndim of
                                         XMERGE=x, YMERGE=y, $
                                         RRANGE=xrange, TRANGE=yrange, $
                                         TREE=tree, PARAMETERS=params, $
-                                        SAMPLE=sample)
+                                        SAMPLE=sample, LWANT=lwant)
         endif
 
     end
@@ -202,7 +202,7 @@ case params.ndim of
                               XMERGE=x, YMERGE=y, ZMERGE=z, $
                               XRANGE=xrange, YRANGE=yrange, ZRANGE=zrange, $
                               TREE=tree, PARAMETERS=params, $
-                              SAMPLE=sample, /DOUBLE)
+                              SAMPLE=sample, LWANT=lwant, /DOUBLE)
         endif else begin
             sData = jmerge_amr(reform(unk, params.totBlocks, $
                                           params.nxb, $
@@ -211,7 +211,7 @@ case params.ndim of
                               XMERGE=x, YMERGE=y, ZMERGE=z, $
                               XRANGE=xrange, YRANGE=yrange, ZRANGE=zrange, $
                               TREE=tree, PARAMETERS=params, $
-                              SAMPLE=sample)
+                              SAMPLE=sample, LWANT=lwant)
         endelse
     end
 endcase

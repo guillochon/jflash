@@ -160,7 +160,7 @@ function jmerge_amr, temp_arr, $
                     DOUBLE = double, $
                     XRANGE = txrange, YRANGE = tyrange, ZRANGE = tzrange, $
                     XMERGE = xout, YMERGE = yout, ZMERGE = zout, $
-                    SAMPLE = sample, DEBUG = debug, REFORM=reformit
+                    SAMPLE = sample, LWANT = lwant, DEBUG = debug, REFORM=reformit
 
 ; allow flag for reforming to be undefined
 if (not Keyword_Set(reformit)) then reformit = 0
@@ -174,7 +174,8 @@ lmax = max(tree[index_good].lrefine)
 lmin = min(tree[index_good].lrefine)
 
 if n_elements(sample) EQ 0 then begin
-  lwant = lmax
+  if n_elements(lwant) EQ 0 then lwant = lmax
+  if lwant GT lmax then print, 'Error: lwant greater than lmax'
 endif else begin
   lwant = lmax - sample
   if lwant LE 0 then begin
