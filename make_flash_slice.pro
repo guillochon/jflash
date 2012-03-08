@@ -133,6 +133,11 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		xrange = xr
 		yrange = yr
 		zrange = zr
+	endif else if special eq 'column_z' then begin
+		sliceplane = 'z'
+		xrange = xr
+		yrange = yr
+		zrange = zr
 	endif else begin
 		print, 'Either xrange, yrange, or zrange must have a single value!'
 		return
@@ -188,6 +193,10 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif else begin
 		slice = extdata
 	endelse
+
+	if (special eq 'column_z') then begin
+		slice = total(slice, 3)
+	endif
 
 	if (special eq 'revolve_z') then begin
 		tmpslice = reform(slice)
