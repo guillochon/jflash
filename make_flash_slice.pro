@@ -58,7 +58,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
     hidecolorbar=hidecolorbar,ambval=ambval,exactmult=exactmult,symrange=symrange,lmin=lmin,xticks=xticks,yticks=yticks,$
 	annotatepos=annotatepos,output=output,special=special,hideaxes=hideaxes,negative=negative,subtractavg=subtractavg,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
-	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient
+	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius
 
     compile_opt idl2
     fname = filename
@@ -195,7 +195,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endelse
 
 	if (special eq 'column_z') then begin
-		slice = total(slice, 3)
+		slice = total(slice, 3)*(zcoord[1]-zcoord[0])
 	endif
 
 	if (special eq 'revolve_z') then begin
@@ -475,15 +475,16 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	erase, color=fsc_color('black',/nodisplay)
 	polyfill, [1.0,1.0,0.0,0.0,1.0], [1.0,0.0,0.0,1.0,1.0], /normal, color=fsc_color('black',/nodisplay)
 
-	pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xrange[1] - xrange[0])
-	pos[1] = pos[1] + (pos[3] - pos[1])*(ycoord[0] - yrange[0])/(yrange[1] - yrange[0])
-	pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xrange[1] - xrange[0])
-	pos[3] = pos[1] + (pos[3] - pos[1])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(yrange[1] - yrange[0])
+	pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
+	pos[1] = pos[1] + (pos[3] - pos[1])*(ycoord[0] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+	pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
+	pos[3] = pos[1] + (pos[3] - pos[1])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+
 	!p.position = pos
 	if slicetype eq 'minor' or slicetype eq 'major' then begin
 		tvimage, image3d, position=pos,/nointerpolation
 	endif else begin
-		tvimage, image3d, image3d2, /keep_aspect, position=pos,/nointerpolation
+		tvimage, image3d, image3d2, /keep_aspect, position=pos;,/nointerpolation
 		;blendimage, image3d, image3d2, alpha=0.0, /keep_aspect, position=pos,/nointerpolation
 	endelse
 
@@ -510,6 +511,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 				plot, yrange, zrange, /noerase, /nodata, /xsty, /ysty, charsize=charsize*imgsizex/1000., $
 					color=plotcolor, position=pos, xticks=xticks, yticks=yticks
+
 				if special eq 'velyzrot' then begin
 					load_flash_var, dens, filename, 'dens', xrange, yrange, zrange, dens=dens, temp=temp, $
 						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor
@@ -615,9 +617,25 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if special eq 'markcenter' then begin
 		mysym = findgen(49) * (!pi*2/48.)  
 		usersym, cos(mysym), sin(mysym), thick=3.0
-		if n_elements(cellsize) eq 0 then cellsize = simsize/s[0]
 		plots, 0.0d0, 0.0d0, psym=8, symsize=min([xrange[1]-xrange[0],yrange[1]-yrange[0]])*0.05, color=fsc_color('blue'), /data
 	endif
+
+	if keyword_set(ptpos) then begin
+		mysym = findgen(49) * (!pi*2/48.)  
+		usersym, cos(mysym), sin(mysym), thick=3.0, /fill
+		sympos = [pos[0] + (pos[2] - pos[0])*(ptpos[0] - xrange[0])/(xrange[1] - xrange[0]), $
+				  pos[1] + (pos[3] - pos[1])*(ptpos[1] - yrange[0])/(yrange[1] - yrange[0])]
+		th = 2.0*!dpi/100.0*dindgen(101) 
+		if n_elements(ptradius) EQ 0 then begin
+			r = 0.02 
+		endif else begin
+			r = ptradius/(xrange[1]-xrange[0])
+		endelse
+		ptx = r*cos(th)
+		pty = r*sin(th) 
+		polyfill, sympos[0]+ptx, sympos[1]+pty, color=fsc_color('blue'), /normal, _EXTRA=extra
+	endif
+
 
     if ~keyword_set(hidetime) then begin
 		if annotatepos eq 'flip' then begin
