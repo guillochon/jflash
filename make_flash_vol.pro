@@ -61,7 +61,8 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 	imgsizex=imgsizex,imgsizey=imgsizey,thrtype=thrtype,special=special,simsize=simsize,cellsize=cellsize,$
 	boxaxes=boxaxes,memefficient=memefficient,hideaxes=hideaxes,zoom=zoom,boxscale=boxscale,$
 	xticks=xticks,yticks=yticks,zticks=zticks,custom_rot=custom_rot,hidecolorbar=hidecolorbar,mirror=mirror,$
-	ctswitch=ctswitch,hideticklabels=hideticklabels,extdata=extdata,relaxes=relaxes,oversample=oversample
+	ctswitch=ctswitch,hideticklabels=hideticklabels,extdata=extdata,relaxes=relaxes,oversample=oversample,$
+	lwant=lwant
 
     compile_opt idl2
 	if n_elements(ax) eq 0 then ax = 30
@@ -123,13 +124,13 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 		if (n_elements(var) gt 1) then begin
 			for i=0,n_elements(var)-1 do begin
 				load_flash_var, tmpslice, filename, var[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, subtractavg=subtractavgi, $
+					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 					xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, memefficient=memefficient
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
-				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, time=time, simsize=simsize, subtractavg=subtractavgi, $
+				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 				xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, memefficient=memefficient
 		endelse
 	endif else begin
@@ -159,7 +160,7 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 			endfor
 			if thrloaded eq 0 then begin
 				load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample
+					velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant
 				thrslice[*,*,*,i] = newthrslice
 			endif	
 		endelse
@@ -325,7 +326,7 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 		device,xsize=imgsizex/1000.,ysize=imgsizey/1000.,/inches ;voxel_proj assumes 1000 pixels per inch, for some reason
 		;vox = voxel_proj(vol, background=[0,0,0], /interpolate, /maximum_intensity)
 		slice = (slice - min(slice))/(max(slice) - min(slice))
-		vox = jproject_vol(slice, s[0]*oversample, s[1]*oversample, s[2]*oversample)
+		vox = jproject_vol(slice, s[0]*oversample, s[1]*oversample, s[2]*oversample, /avg_intensity)
 		vox = round((vox - min(vox))/(max(vox) - min(vox))*255.0)
 		
 		device,xsize=imgsizex/100.,ysize=imgsizey/100.,/inches

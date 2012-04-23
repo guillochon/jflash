@@ -90,7 +90,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 	flythrough=flythrough,negative=negative,subtractavg=subtractavg,custom_rot=custom_rot,hidecolorbar=hidecolorbar,$
 	ctswitch=ctswitch,mirror=mirror,hideticklabels=hideticklabels,rminstep=rminstep,rminlstep=rminlstep,excision=excision,$
 	fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,refcoor=refcoor,absval=absval,trackfile=trackfile,showblocks=showblocks,$
-	showrelaxes=showrelaxes,oversample=oversample,orbinfo=orbinfo
+	showrelaxes=showrelaxes,oversample=oversample,orbinfo=orbinfo,showpt=showpt,ptradius=ptradius
 
 	compile_opt idl2
 	if n_elements(indexlength) eq 0 then indexlength = 4
@@ -120,10 +120,16 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 
 	if n_elements(trackfile) ne 0 then begin
 		track = read_ascii(trackfile)
-		trackt = track.field1[0,*]
-		trackx = track.field1[1,*]
-		tracky = track.field1[2,*]
-		trackz = track.field1[3,*]
+		track = track.(0)
+		trackt = track[0,*]
+		trackx = track[1,*]
+		tracky = track[2,*]
+		trackz = track[3,*]
+		if keyword_set(showpt) then begin
+			pttrackx = track[4,*]
+			pttracky = track[5,*]
+			pttrackz = track[6,*]
+		endif
 	endif
 
 	numformat = '(I' + string(indexlength) + '.' + string(indexlength) + ')'
@@ -137,6 +143,9 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			bxr = xrange + interpol(trackx, trackt, time)
 			byr = yrange + interpol(tracky, trackt, time)
 			bzr = zrange + interpol(trackz, trackt, time)
+			bptxr = xrange + interpol(pttrackx, trackt, time)
+			bptyr = yrange + interpol(pttracky, trackt, time)
+			bptzr = zrange + interpol(pttrackz, trackt, time)
 			print, 'Loading base state'
 			base_state = double(loaddata(base_file,var,xrange=bxr,yrange=byr,zrange=bzr,sample=sample,lwant=lwant,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,/double))
 			refcoor = [[bxr[0], bxr[1]], [byr[0], byr[1]], [bzr[0], bzr[1]]]
@@ -147,6 +156,9 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				bxr = xrange + interpol(trackx, trackt, time)
 				byr = yrange + interpol(tracky, trackt, time)
 				bzr = zrange + interpol(trackz, trackt, time)
+				bptxr = xrange + interpol(pttrackx, trackt, time)
+				bptyr = yrange + interpol(pttracky, trackt, time)
+				bptzr = zrange + interpol(pttrackz, trackt, time)
 				tmp_state = double(loaddata(base_file,var,xrange=bxr,yrange=byr,zrange=bzr,sample=sample,lwant=lwant,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,/double))
 				mc = double(xcoords[n_elements(xcoords)-1] - xcoords[0])/n_elements(xcoords)
 				x0 = (bxr[0] - refcoor[0,0]) mod mc
@@ -177,6 +189,11 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			xr = xrange + interpol(trackx, trackt, time, /quad)
 			yr = yrange + interpol(tracky, trackt, time, /quad)
 			zr = zrange + interpol(trackz, trackt, time, /quad)
+			if keyword_set(showpt) then begin
+				ptpos = [interpol(pttrackx, trackt, time), $
+						 interpol(pttracky, trackt, time), $
+						 interpol(pttrackz, trackt, time)]
+			endif
 			relaxes = [[xrange[0], xrange[1]], [yrange[0], yrange[1]], [zrange[0], zrange[1]]]
 		endelse
 		if keyword_set(vol) then begin
@@ -205,7 +222,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				special=special,negative=negative,subtractavg=subtractavg,thrtype=thrtype,hideaxes=hideaxes,ctswitch=ctswitch,$
 				excision=excision,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,absval=absval,refcoor=refcoor,$
 				showblocks=showblocks,relaxes=relaxes,base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,$
-				memefficient=memefficient
+				memefficient=memefficient,ptpos=ptpos,ptradius=ptradius
 		endelse
 		fsc_undefine, filename
 		if keyword_set(rminstep) then rangemin = rangemin + rminstep
