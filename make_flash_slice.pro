@@ -58,7 +58,8 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
     hidecolorbar=hidecolorbar,ambval=ambval,exactmult=exactmult,symrange=symrange,lmin=lmin,xticks=xticks,yticks=yticks,$
 	annotatepos=annotatepos,output=output,special=special,hideaxes=hideaxes,negative=negative,subtractavg=subtractavg,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
-	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius
+	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,$
+	timeunit=timeunit
 
     compile_opt idl2
     fname = filename
@@ -436,7 +437,11 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		set_plot, thisDevice
 	endelse
 	if n_elements(custom_ct) ne 0 then tvlct, custom_ct else begin
-		loadct, my_ct
+		loadct, abs(my_ct)
+		if my_ct lt 0 then begin
+			tvlct, r, g, b, /get
+			tvlct, reverse(r), reverse(g), reverse(b)
+		endif
 	endelse
    	tvlct, red, green, blue, /get
 	if n_elements(lmin) gt 0 then begin
@@ -475,10 +480,41 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	erase, color=fsc_color('black',/nodisplay)
 	polyfill, [1.0,1.0,0.0,0.0,1.0], [1.0,0.0,0.0,1.0,1.0], /normal, color=fsc_color('black',/nodisplay)
 
-	pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
-	pos[1] = pos[1] + (pos[3] - pos[1])*(ycoord[0] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
-	pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
-	pos[3] = pos[1] + (pos[3] - pos[1])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+	if keyword_set(ptpos) then begin
+		mysym = findgen(49) * (!pi*2/48.)  
+		usersym, cos(mysym), sin(mysym), thick=3.0, /fill
+		sympos = [pos[0] + (pos[2] - pos[0])*(ptpos[0] - xrange[0])/(xrange[1] - xrange[0]), $
+				  pos[1] + (pos[3] - pos[1])*(ptpos[1] - yrange[0])/(yrange[1] - yrange[0])]
+		th = 2.0*!dpi/100.0*dindgen(101) 
+		if n_elements(ptradius) EQ 0 then begin
+			r = 0.02 
+		endif else begin
+			r = ptradius/(xrange[1]-xrange[0])
+		endelse
+		ptx = r*cos(th)
+		pty = r*sin(th) 
+	endif
+
+	case sliceplane of
+		'x': begin
+			pos[0] = pos[0] + (pos[2] - pos[0])*(ycoord[0] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoord[0] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
+			pos[2] = pos[0] + (pos[2] - pos[0])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoord[n_elements(zcoord)-1] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
+		end
+		'y': begin
+			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
+			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoord[0] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
+			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
+			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoord[n_elements(zcoord)-1] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
+		end
+		'z': begin
+			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
+			pos[1] = pos[1] + (pos[3] - pos[1])*(ycoord[0] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
+			pos[3] = pos[1] + (pos[3] - pos[1])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+		end
+	endcase
 
 	!p.position = pos
 	if slicetype eq 'minor' or slicetype eq 'major' then begin
@@ -621,18 +657,6 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 
 	if keyword_set(ptpos) then begin
-		mysym = findgen(49) * (!pi*2/48.)  
-		usersym, cos(mysym), sin(mysym), thick=3.0, /fill
-		sympos = [pos[0] + (pos[2] - pos[0])*(ptpos[0] - xrange[0])/(xrange[1] - xrange[0]), $
-				  pos[1] + (pos[3] - pos[1])*(ptpos[1] - yrange[0])/(yrange[1] - yrange[0])]
-		th = 2.0*!dpi/100.0*dindgen(101) 
-		if n_elements(ptradius) EQ 0 then begin
-			r = 0.02 
-		endif else begin
-			r = ptradius/(xrange[1]-xrange[0])
-		endelse
-		ptx = r*cos(th)
-		pty = r*sin(th) 
 		polyfill, sympos[0]+ptx, sympos[1]+pty, color=fsc_color('blue'), /normal, _EXTRA=extra
 	endif
 
@@ -642,8 +666,16 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			xyouts, 0.8, 0.95, 'Time: ' + strcompress(string(time, format='(G-15.7)'), /remove_all) + 's', $
 				charsize=2.0*charsize*imgsizey/1000., color=plotcolor, /normal
 		endif else begin
-			xyouts, 0.08, 0.95, 'Time: ' + strcompress(string(time, format='(G-15.7)'), /remove_all) + 's', $
-				charsize=2.0*charsize*imgsizey/1000., color=plotcolor, /normal
+			if (timeunit eq 's') then begin
+				xyouts, 0.08, 0.95, 'Time: ' + strcompress(string(time, format='(G-15.7)'), /remove_all) + ' seconds', $
+					charsize=2.0*charsize*imgsizey/1000., color=plotcolor, /normal
+			endif else if (timeunit eq 'h') then begin
+				xyouts, 0.08, 0.95, 'Time: ' + strcompress(string(time/3600., format='(G-15.7)'), /remove_all) + ' hours', $
+					charsize=2.0*charsize*imgsizey/1000., color=plotcolor, /normal
+			endif else if (timeunit eq 'd') then begin
+				xyouts, 0.08, 0.95, 'Time: ' + strcompress(string(time/86400., format='(G-15.7)'), /remove_all) + ' days', $
+					charsize=2.0*charsize*imgsizey/1000., color=plotcolor, /normal
+			endif
 		endelse
 	endif
 		
