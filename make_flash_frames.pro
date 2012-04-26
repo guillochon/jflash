@@ -90,11 +90,12 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 	flythrough=flythrough,negative=negative,subtractavg=subtractavg,custom_rot=custom_rot,hidecolorbar=hidecolorbar,$
 	ctswitch=ctswitch,mirror=mirror,hideticklabels=hideticklabels,rminstep=rminstep,rminlstep=rminlstep,excision=excision,$
 	fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,refcoor=refcoor,absval=absval,trackfile=trackfile,showblocks=showblocks,$
-	showrelaxes=showrelaxes,oversample=oversample,orbinfo=orbinfo,showpt=showpt,ptradius=ptradius
+	showrelaxes=showrelaxes,oversample=oversample,orbinfo=orbinfo,showpt=showpt,ptradius=ptradius,timeunit=timeunit
 
 	compile_opt idl2
 	if n_elements(indexlength) eq 0 then indexlength = 4
 	if n_elements(special) eq 0 then special = ''
+	if n_elements(timeunit) eq 0 then timeunit = 's'
 
 	if n_elements(stride) eq 0 then begin
 		if (start gt finish) then begin
@@ -222,7 +223,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				special=special,negative=negative,subtractavg=subtractavg,thrtype=thrtype,hideaxes=hideaxes,ctswitch=ctswitch,$
 				excision=excision,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,absval=absval,refcoor=refcoor,$
 				showblocks=showblocks,relaxes=relaxes,base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,$
-				memefficient=memefficient,ptpos=ptpos,ptradius=ptradius
+				memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,timeunit=timeunit
 		endelse
 		fsc_undefine, filename
 		if keyword_set(rminstep) then rangemin = rangemin + rminstep

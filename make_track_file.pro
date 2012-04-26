@@ -60,6 +60,7 @@ pro make_track_file, filename, offset=offset, outfile=outfile, mode=mode, stride
 		endif
 	endif else if mode eq 2 or mode eq 4 then begin
 		path = data[19+offset:21+offset,0:length-1:stride]+data[1+offset:3+offset,0:length-1:stride]-data[7+offset:9+offset,0:length-1:stride]
+		if keyword_set(include_pt) then ptpath = path
 	endif else if mode eq 3 then begin
 		path = data[*,0:length-1:stride]
 	endif else begin
