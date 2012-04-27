@@ -73,7 +73,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'gvelzz' or var eq 'bhbound' or var eq 'kine' or var eq 'momentum' or var eq 'selfbound' or $
 		var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(velz) eq 0 then begin
-			velz = (jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords))
+			velz = (jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		slice = velz
 		if var eq 'absvelz' then slice = abs(velz)
@@ -81,7 +81,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	endif
 	if var eq 'gpot' or var eq 'selfbound' or var eq 'gpotener' then begin
 		if n_elements(gpot) eq 0 then begin
-			gpot = (jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
+			gpot = (jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 			;gpot = gpot/2. ;FLASH doubles this for some reason...
 		endif
 		slice = gpot
@@ -92,7 +92,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	endif
 	if total(strcmp(var, ['pres','kinpresratio','kinpresdiff','mach','csnd','cfl']), /pre) eq 1 then begin
 		if n_elements(pres) eq 0 then begin
-			pres = (jloaddata(filename,'pres',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
+			pres = (jloaddata(filename,'pres',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		if var eq 'pres' then slice = pres
 		dims = size(pres, /dimensions)
