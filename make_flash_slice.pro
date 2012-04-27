@@ -15,43 +15,44 @@
 ; NOTE: One of either xrange, yrange, or zrange must have min = max, or must be a single value.
 ;
 ; **Optional**
-; simsize       (dbl)           - Width of the box in cgs units (assumes box is cubical, used for certain variables).
-; slicetype     (str)           - UNUSED.
-; rangemin      (dbl)           - Minimum value to plot.
-; rangemax      (dbl)           - Maximum value to plot.
-; imgsizex      (dbl)           - Size of x dimension of output image, in pixels (applies to PNG only).
-; imgsizey      (dbl)           - Size of y dimension of output image, in pixels (applies to PNG only).
-; fprefix       (str)           - Prefix to append to output image files, e.g. 'myprefix_restoffilename'
-; exactsize     (bool)          - Smallest grid cells will span exactly 1 pixel in output image.
-; exactmult     (dbl)           - Exactsize must be true; smallest grid cells will span 1 pixel * exactmult.
-; xticks        (int)           - Number of ticks to draw on x axis
-; yticks        (int)           - Number of ticks to draw on y axis.
-; zticks        (int)           - Number of ticks to draw on z axis (3D only).
-; log           (bool)          - Scale data logarithmically.
-; colorbarcolor (str)           - Color of colorbar annotation. 
-; hidecolorbar  (bool)          - Hides the colorbar.
-; contourvar    (str)           - Variable used to draw contours on plot.
-; thrvar        ([str,str,...]) - Variables used as a "threshold," data in regions where thresholds aren't
-;                                 satisfied are set to rangemin.
-; thrval        ([dbl,dbl,...]) - Threshold values, see above.
-; thrtype       ([str,str,...]) - Whether the threshold is a minimum or a maximum, valid values 'min' or 'max'.
-; sample        (int)           - Number of times to downsample data from highest refinment, must be <= 3.
-; stride        (int)           - Stride of frame iteration, default 1.
-; charsize      (dbl)           - Multiplier of default char size, default 1.0.
-; symrange      (bool)          - Makes the data range symmetric depending on min and max values of data.
-; lmin          (dbl)           - Used with symrange only, specifies min log value for
-;                                 symmetric ranges (Since log can't have negative argument).
-; annotatepos   (str)           - Annotation position (colorbar, timestamp). Currently can only set to 'flip'.
-; output        (str)           - Specifies output file type, can be 'ps' or 'png' (default).
-; special       (str)           - Flag used to indicate "special" plots to generate.
-; cellsize      (dbl)           - Size of the smallest grid cells in CGS units, used for some variables.
-; memefficient  (bool)          - Deallocate variables as soon as they are not needed.
-; hideaxes      (bool)          - Do not show axes.
-; showblocks    (bool)          - Show block boundaries
+; simsize       (dbl)               - Width of the box in cgs units (assumes box is cubical, used for certain variables).
+; slicetype     (str)               - UNUSED.
+; rangemin      (dbl)               - Minimum value to plot.
+; rangemax      (dbl)               - Maximum value to plot.
+; imgsizex      (dbl)               - Size of x dimension of output image, in pixels (applies to PNG only).
+; imgsizey      (dbl)               - Size of y dimension of output image, in pixels (applies to PNG only).
+; fprefix       (str)               - Prefix to append to output image files, e.g. 'myprefix_restoffilename'
+; exactsize     (bool)              - Smallest grid cells will span exactly 1 pixel in output image.
+; exactmult     (dbl)               - Exactsize must be true; smallest grid cells will span 1 pixel * exactmult.
+; xticks        (int)               - Number of ticks to draw on x axis
+; yticks        (int)               - Number of ticks to draw on y axis.
+; zticks        (int)               - Number of ticks to draw on z axis (3D only).
+; log           (bool)              - Scale data logarithmically.
+; colorbarcolor (str)               - Color of colorbar annotation. 
+; hidecolorbar  (bool)              - Hides the colorbar.
+; contours      ([str,dbl,dbl,int]) - Parameters of contours to overplot, 'varname', min_cont_val, max_cont_val,
+;	                                  nconts
+; thrvar        ([str,str,...])     - Variables used as a "threshold," data in regions where thresholds aren't
+;                                     satisfied are set to rangemin.
+; thrval        ([dbl,dbl,...])     - Threshold values, see above.
+; thrtype       ([str,str,...])     - Whether the threshold is a minimum or a maximum, valid values 'min' or 'max'.
+; sample        (int)               - Number of times to downsample data from highest refinment, must be <= 3.
+; stride        (int)               - Stride of frame iteration, default 1.
+; charsize      (dbl)               - Multiplier of default char size, default 1.0.
+; symrange      (bool)              - Makes the data range symmetric depending on min and max values of data.
+; lmin          (dbl)               - Used with symrange only, specifies min log value for
+;                                     symmetric ranges (Since log can't have negative argument).
+; annotatepos   (str)               - Annotation position (colorbar, timestamp). Currently can only set to 'flip'.
+; output        (str)               - Specifies output file type, can be 'ps' or 'png' (default).
+; special       (str)               - Flag used to indicate "special" plots to generate.
+; cellsize      (dbl)               - Size of the smallest grid cells in CGS units, used for some variables.
+; memefficient  (bool)              - Deallocate variables as soon as they are not needed.
+; hideaxes      (bool)              - Do not show axes.
+; showblocks    (bool)              - Show block boundaries
 
 pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
     simsize=simsize,slicetype=slicetype,rangemin=rangemin,$
-    rangemax=rangemax,pos=pos,contourvar=contourvar,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,$
+    rangemax=rangemax,pos=pos,contours=contours,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,$
     thrvar=thrvar,thrval=thrval,thrtype=thrtype,sample=sample,lwant=lwant,imgsizex=imgsizex,imgsizey=imgsizey,$
     exactsize=exactsize,fprefix=fprefix,extdata=extdata,datatime=datatime,$
     log=log,colorbarcolor=colorbarcolor,charsize=charsize,hidetime=hidetime,$
@@ -71,13 +72,19 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(colorbarcolor) eq 0 then colorbarcolor = 'white'
 	if n_elements(imgsizex) eq 0 then imgsizex = 1000
 	if n_elements(fprefix) eq 0 then fprefix = ''
-   	if n_elements(thrtype) eq 0 then thrtype = 'min'
+   	if n_elements(thrtype) eq 0 then thrtype = make_array(n_elements(thrvar), value='min') 
    	if n_elements(exactmult) eq 0 then exactmult = 1.0
 	if n_elements(datatime) ne 0 then time = datatime
 	if n_elements(charsize) eq 0 then charsize = 1.0
 	if n_elements(annotatepos) eq 0 then annotatepos = 'ur'
 	if n_elements(output) eq 0 then output = 'png'
 	if n_elements(special) eq 0 then special = ''
+	if n_elements(contours) ne 0 then begin
+		if n_tags(contours) ne 4 then begin
+			print, 'Error: Wrong contours specification.'
+			return
+		endif
+	endif
    	if output ne 'x' then nowindow = 1
 	if n_elements(my_ct) gt 1 then begin
 		custom_ct = intarr(256,3)
@@ -181,14 +188,14 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			for i=0,n_elements(var)-1 do begin
 				load_flash_var, tmpslice, filename, var[i], xrange, yrange, zrange, dens=dens, temp=temp, $
 					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
-					xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
+					xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 					trackfile=trackfile, memefficient=memefficient
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
-				xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
+				xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 				trackfile=trackfile, memefficient=memefficient
 		endelse
 	endif else begin
@@ -196,12 +203,12 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endelse
 
 	if (special eq 'column_z') then begin
-		slice = total(slice, 3)*(zcoord[1]-zcoord[0])
+		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
 	endif
 
 	if (special eq 'revolve_z') then begin
 		tmpslice = reform(slice)
-		npts = n_elements(xcoord)
+		npts = n_elements(xcoords)
 		r = dindgen(floor(npts/2))
 		zpos = cmreplicate(dindgen(npts), floor(npts/2))
 		theta = dindgen(npts)/(npts+1)*2*!pi
@@ -248,39 +255,39 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endelse
 	endif
 
-	thrslice = fltarr(slice_dims[0],slice_dims[1],slice_dims[2],n_elements(uniq(thrvar)))
+	thrslice = dblarr(slice_dims[0],slice_dims[1],slice_dims[2],n_elements(thrvar))
 
 	;below may not work for diagonal slices
 	for i=0,n_elements(thrvar)-1 do begin
-		thrloaded = 0
-		if n_elements(var) eq 1 then begin
-			if var eq thrvar[i] and special eq '' then begin
-				thrloaded = 1
-				thrslice[*,*,*,i] = slice
-			endif
-		endif
-		if thrloaded eq 0 then begin
-			for j=0,i-1 do begin
-				if thrvar[i] eq thrvar[j] then begin
-					thrslice[*,*,*,i] = thrslice[*,*,*,j]
-					thrloaded = 1
-				endif
-			endfor
-			if thrloaded eq 0 then begin
-				load_flash_var, newthrslice, filename, thrvar, xrange, yrange, zrange, dens=dens, temp=temp, $
+		;thrloaded = 0
+		;if n_elements(var) eq 1 then begin
+		;	if var eq thrvar[i] and special eq '' then begin
+		;		thrloaded = 1
+		;		thrslice[*,*,*,i] = slice
+		;	endif
+		;endif
+		;if thrloaded eq 0 then begin
+		;	for j=0,i-1 do begin
+		;		if thrvar[i] eq thrvar[j] then begin
+		;			thrslice[*,*,*,i] = thrslice[*,*,*,j]
+		;			thrloaded = 1
+		;		endif
+		;	endfor
+		;	if thrloaded eq 0 then begin
+				load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
 					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, simsize=simsize, $
-					refcoor=refcoor, orbinfo=orbinfo
+					refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
 				thrslice[*,*,*,i] = newthrslice
-			endif	
-		endif
+		;	endif	
+		;endif
 	endfor
 
-	if n_elements(contourvar) ne 0 then begin
-		if contourvar eq var then contourslice = slice else begin
-			for i=0,n_elements(thrvar)-1 do if thrvar[i] eq contourvar then contourslice = thrslice[*,*,*,i]
+	if n_elements(contours) ne 0 then begin
+		if contours.var eq var then contourslice = slice else begin
+			for i=0,n_elements(thrvar)-1 do if thrvar[i] eq contours.var then contourslice = thrslice[*,*,*,i]
 		endelse
 		if n_elements(contourslice) eq 0 then begin
-			load_flash_var, contourslice, filename, contourvar, xrange, yrange, zrange, dens=dens, temp=temp, $
+			load_flash_var, contourslice, filename, contours.var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, refcoor=refcoor, $
 				orbinfo=orbinfo
 		endif
@@ -314,7 +321,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		for i=0,slice_dims[0]-1 do begin
 		for j=0,slice_dims[1]-1 do begin
 		for k=0,slice_dims[2]-1 do begin
-			d = sqrt((xcoord[i]-exx)^2. + (ycoord[j]-exy)^2.)
+			d = sqrt((xcoords[i]-exx)^2. + (ycoords[j]-exy)^2.)
 			if (d le exr) then slice[i,j,k] = rangemin
 		endfor
 		endfor
@@ -324,16 +331,17 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(thrvar) eq 0 then begin
 		if keyword_set(rangemin) then min_val = rangemin else min_val = min(slice)
 		if keyword_set(rangemax) then max_val = rangemax else max_val = max(slice)
-		if n_elements(contourslice) ne 0 then begin
-			min_cont_val = min(contourslice)
-			max_cont_val = max(contourslice)
-		endif
 	endif else begin
-		if thrtype eq 'max' then begin
-			indices = where(reform(thrslice) le thrval, count) ;doesn't work with more than 1 thr var
-		endif else begin
-			indices = where(reform(thrslice) ge thrval, count) ;doesn't work with more than 1 thr var
-		endelse
+		indices = indgen(n_elements(slice))
+		count = 0
+		for i=0,n_elements(thrvar)-1 do begin
+			if thrtype[i] eq 'max' then begin
+				indices = cmset_op(indices, 'AND', where(reform(thrslice[*,*,*,i]) le thrval[i], lcount))
+			endif else begin
+				indices = cmset_op(indices, 'AND', where(reform(thrslice[*,*,*,i]) ge thrval[i], lcount))
+			endelse
+			count = count + lcount
+		endfor
 		if count gt 0 then begin
 			min_val = min(slice[indices])
 			if n_elements(fieldslicex) ne 0 then begin
@@ -341,12 +349,18 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 				min_fieldy_val = min(abs(fieldslicey[indices]))
 			endif
 			max_val = max(slice[indices])
-			if n_elements(contourslice) ne 0 then begin
-				min_cont_val = min(contourslice[indices])
-				max_cont_val = max(contourslice[indices])
-			endif
 		endif
 	endelse
+
+	if n_elements(contourslice) ne 0 then begin
+		if keyword_set(log) then begin
+			min_cont_val = alog10(contours.min)
+			max_cont_val = alog10(contours.max)
+		endif else begin
+			min_cont_val = contours.min
+			max_cont_val = contours.max
+		endelse
+	endif
 	
 	if n_elements(symrange) eq 0 then begin
 		if n_elements(rangemin) ne 0 then min_val = rangemin
@@ -378,7 +392,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 								endif else begin
 									slice[i,j,k] = rangemin
 								endelse
-								if n_elements(contourvar) ne 0 then contourslice[i,j,k] = min_cont_val
+								if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
 								if n_elements(fieldvarx) ne 0 then begin
 									fieldslicex[i,j,k] = min_fieldx_val
 									fieldslicey[i,j,k] = min_fieldy_val
@@ -391,7 +405,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 								endif else begin
 									slice[i,j,k] = rangemin
 								endelse
-								if n_elements(contourvar) ne 0 then contourslice[i,j,k] = min_cont_val
+								if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
 							endif
 						endelse
 					endfor
@@ -497,22 +511,22 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	case sliceplane of
 		'x': begin
-			pos[0] = pos[0] + (pos[2] - pos[0])*(ycoord[0] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
-			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoord[0] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
-			pos[2] = pos[0] + (pos[2] - pos[0])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
-			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoord[n_elements(zcoord)-1] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
+			pos[0] = pos[0] + (pos[2] - pos[0])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
+			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoords[0] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
+			pos[2] = pos[0] + (pos[2] - pos[0])*(ycoords[n_elements(ycoords)-1] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
+			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoords[n_elements(zcoords)-1] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
 		end
 		'y': begin
-			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
-			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoord[0] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
-			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
-			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoord[n_elements(zcoord)-1] - zrange[0])/(zcoord[n_elements(zcoord)-1] - zcoord[0])
+			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoords[0] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
+			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoords[0] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
+			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoords[n_elements(xcoords)-1] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
+			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoords[n_elements(zcoords)-1] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
 		end
 		'z': begin
-			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoord[0] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
-			pos[1] = pos[1] + (pos[3] - pos[1])*(ycoord[0] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
-			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoord[n_elements(xcoord)-1] - xrange[0])/(xcoord[n_elements(xcoord)-1] - xcoord[0])
-			pos[3] = pos[1] + (pos[3] - pos[1])*(ycoord[n_elements(ycoord)-1] - yrange[0])/(ycoord[n_elements(ycoord)-1] - ycoord[0])
+			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoords[0] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
+			pos[1] = pos[1] + (pos[3] - pos[1])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
+			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoords[n_elements(xcoords)-1] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
+			pos[3] = pos[1] + (pos[3] - pos[1])*(ycoords[n_elements(ycoords)-1] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
 		end
 	endcase
 
@@ -603,20 +617,16 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 				;   plot, [midxy-range/2, midxy+range/2], [midz-range/2, midz+range/2], /noerase, /nodata, /xsty, /ysty, charsize=1.0
 
 				endif else begin
-					if n_elements(contourslice) gt 0 then $
-						contour, contourslice, levels=(1-(reverse(dindgen(30)+1)/31.))*(max_cont_val-min_cont_val)+min_cont_val, $
-						/noerase, xstyle=1+4, ystyle=1+4, position=pos, color=fsc_color('cyan')
-
 					if keyword_set(fieldvarx) then begin
-						csize = xcoord[1]-xcoord[0]
+						csize = xcoords[1]-xcoords[0]
 						xcoordmat = dblarr(slice_dims[0],slice_dims[1])
 						ycoordmat = dblarr(slice_dims[0],slice_dims[1])
 						for i=0,slice_dims[1]-1 do begin
-							xcoordmat[*,i] = xcoord
-							ycoordmat[i,*] = ycoord
+							xcoordmat[*,i] = xcoords
+							ycoordmat[i,*] = ycoords
 						endfor
 						partvelvec, reform(fieldslicex), reform(fieldslicey), xcoordmat, ycoordmat, position=pos, xstyle=5, ystyle=5, $
-							xrange=[xcoord[0]-0.5*csize,xcoord[slice_dims[0]-1]+0.5*csize], yrange=[ycoord[0]-0.5*csize,ycoord[slice_dims[1]-1]+0.5*csize], /noerase, $
+							xrange=[xcoords[0]-0.5*csize,xcoords[slice_dims[0]-1]+0.5*csize], yrange=[ycoords[0]-0.5*csize,ycoords[slice_dims[1]-1]+0.5*csize], /noerase, $
 							fraction=0.001, maxmag=fieldmax, seed=10, length=0.02
 					endif
 
@@ -631,6 +641,10 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			end
 		endcase
 	endif
+
+	if n_elements(contourslice) gt 0 then $
+		contour, contourslice, levels=(1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val, $
+		/noerase, xstyle=1+4, ystyle=1+4, position=pos, color=fsc_color('cyan')
 
 	case sliceplane of
 		'x': begin

@@ -32,7 +32,7 @@
 ; zticks        (int)             - Number of ticks to draw on z axis (3D only).
 ; log           (bool)            - Scale data logarithmically.
 ; colorbarcolor (str)             - Color of colorbar annotation. 
-; contourvar    (str)             - Variable used to draw contours on plot.
+; contours    (str)             - Variable used to draw contours on plot.
 ; thrvar        ([str,str,...])   - Variables used as a "threshold," data in regions where thresholds aren't
 ;                                   satisfied are set to rangemin.
 ; thrval        ([dbl,dbl,...])   - Threshold values, see above.
@@ -83,7 +83,7 @@
 pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsize=simsize,$
 	slicetype=slicetype,rangemin=rangemin,rangemax=rangemax,imgsizex=imgsizex,imgsizey=imgsizey,$
 	fprefix=fprefix,exactsize=exactsize,exactmult=exactmult,xticks=xticks,yticks=yticks,zticks=zticks,$
-	log=log,colorbarcolor=colorbarcolor,contourvar=contourvar,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,stride=stride,$
+	log=log,colorbarcolor=colorbarcolor,contours=contours,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,stride=stride,$
 	charsize=charsize,symrange=symrange,lmin=lmin,annotatepos=annotatepos,output=output,hidetime=hidetime,$
 	ax=ax,az=az,revolvestep=revolvestep,revolvetype=revolvetype,thrtype=thrtype,special=special,cellsize=cellsize,$
 	boxaxes=boxaxes,memefficient=memefficient,hideaxes=hideaxes,zoom=zoom,boxscale=boxscale,indexlength=indexlength,$
@@ -216,7 +216,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			endif
 		endif else begin
 			make_flash_slice,filename,var,my_ct,xr,yr,zr,simsize=simsize,slicetype=slicetype,$
-				rangemin=rangemin,rangemax=rangemax,contourvar=contourvar,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,$
+				rangemin=rangemin,rangemax=rangemax,contours=contours,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,$
 				log=log,colorbarcolor=colorbarcolor,imgsizex=imgsizex,imgsizey=imgsizey,hidetime=hidetime,$
 				fprefix=fprefix,exactsize=exactsize,exactmult=exactmult,charsize=charsize,xticks=xticks,yticks=yticks,$
 				ambval=ambval,symrange=symrange,lmin=lmin,annotatepos=annotatepos,output=output,hidecolorbar=hidecolorbar,$
