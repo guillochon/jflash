@@ -82,7 +82,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	if var eq 'gpot' or var eq 'selfbound' or var eq 'gpotener' then begin
 		if n_elements(gpot) eq 0 then begin
 			gpot = (jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
-			;gpot = gpot/2. ;FLASH doubles this for some reason...
+			gpot = gpot/2. ;FLASH doubles this for some reason...
 		endif
 		slice = gpot
 		if var eq 'gpot' then begin

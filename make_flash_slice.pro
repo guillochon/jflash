@@ -202,10 +202,6 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice = extdata
 	endelse
 
-	if (special eq 'column_z') then begin
-		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
-	endif
-
 	if (special eq 'revolve_z') then begin
 		tmpslice = reform(slice)
 		npts = n_elements(xcoords)
@@ -430,6 +426,10 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			newslice[i,*] = slice[x,y,*]
 		endfor
 		slice = reform(newslice)
+	endif
+
+	if (special eq 'column_z') then begin
+		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
 	endif
 
 	thisDevice = !D.NAME
