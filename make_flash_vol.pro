@@ -124,14 +124,14 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 		if (n_elements(var) gt 1) then begin
 			for i=0,n_elements(var)-1 do begin
 				load_flash_var, tmpslice, filename, var[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
-					xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, memefficient=memefficient
+					velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
+					xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, memefficient=memefficient
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
-				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
-				xcoord=xcoord, ycoord=ycoord, zcoord=zcoord, memefficient=memefficient
+				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
+				xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, memefficient=memefficient
 		endelse
 	endif else begin
 		slice = extdata
@@ -148,70 +148,75 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 
 	;below may not work for diagonal slices
 	for i=0,n_elements(thrvar)-1 do begin
-		if var eq thrvar[i] then begin
-			thrslice[*,*,*,i] = slice
-		endif else begin
-			thrloaded = 0
-			for j=0,i-1 do begin
-				if thrvar[i] eq thrvar[j] then begin
-					thrslice[*,*,*,i] = thrslice[*,*,*,j]
-					thrloaded = 1
-				endif
-			endfor
-			if thrloaded eq 0 then begin
-				load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant
-				thrslice[*,*,*,i] = newthrslice
-			endif	
-		endelse
+		load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
+			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, $
+			xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
+		thrslice[*,*,*,i] = newthrslice
 	endfor
 
 	if n_elements(thrvar) eq 0 then begin
-		min_val = min(slice)
-		max_val = max(slice)
+		if keyword_set(rangemin) then min_val = rangemin else min_val = min(slice)
+		if keyword_set(rangemax) then max_val = rangemax else max_val = max(slice)
 	endif else begin
+		indices = indgen(n_elements(slice))
 		for i=0,n_elements(thrvar)-1 do begin
-			if thrtype[i] eq 'min' then begin
-				indices = where(reform(thrslice[*,*,*,i]) ge thrval[i], count)
+			if thrtype[i] eq 'max' then begin
+				newindices = where(thrslice[*,*,*,i] le thrval[i], lcount, /L64)
 			endif else begin
-				indices = where(reform(thrslice[*,*,*,i]) le thrval[i], count)
+				newindices = where(thrslice[*,*,*,i] ge thrval[i], lcount, /L64)
 			endelse
-			if count ne 0 then begin
-				if i eq 0 then combindices = indices else begin
-					combindices = cmset_op(combindices,'and',indices)
-				endelse
-			endif
+			if lcount eq 0L then begin
+				indices = -1
+				break
+			endif else begin
+				indices = cmset_op(indices, 'AND', newindices)
+			endelse
 		endfor
-		min_val = min(slice[combindices])
-		max_val = max(slice[combindices])
-	endelse
+		if indices[0] ne -1 then begin
+			min_val = min(slice[indices])
+			max_val = max(slice[indices])
+			if n_elements(rangemin) eq 0 then begin
+				slice[indices] = min_val
+			endif else begin
+				slice[indices] = min([min_val, rangemin])
+			endelse
+		endif else begin
+			min_val = min(slice)
+			max_val = max(slice)
+		endelse
 	
+		undefine, indices
+	endelse
+
 	if n_elements(thrvar) gt 0 then begin
 		for i=0,n_elements(thrvar)-1 do begin
-			if thrtype[i] eq 'min' then begin
-				indices = where(reform(thrslice[*,*,*,i]) lt thrval[i], count)
+			if thrtype[i] eq 'max' then begin
+				newindices = where(thrslice[*,*,*,i] gt thrval[i], lcount, /L64)
 			endif else begin
-				indices = where(reform(thrslice[*,*,*,i]) gt thrval[i], count)
+				newindices = where(thrslice[*,*,*,i] lt thrval[i], lcount, /L64)
 			endelse
-			if count ne 0 then begin
-				if i eq 0 then thrindices = indices else begin
-					thrindices = cmset_op(thrindices,'and',indices)
+			if lcount eq 0L then continue
+			if keyword_set(indices) then begin
+				indices = cmset_op(indices, 'OR', newindices)
+			endif else indices = newindices
+		endfor
+		if n_elements(indices) gt 0 then begin
+			if indices[0] ne -1 then begin
+				if n_elements(rangemin) eq 0 then begin
+					slice[indices] = min_val
+				endif else begin
+					slice[indices] = rangemin
 				endelse
 			endif
-		endfor
-		if n_elements(rangemin) eq 0 then begin
-			slice[thrindices] = min_val
-		endif else begin
-			slice[thrindices] = min([min_val, rangemin])
-		endelse
+		endif
 	endif
 
 	if n_elements(rangemin) ne 0 then begin
-		indices = where(slice lt rangemin, count)
+		indices = where(slice lt rangemin, count, /L64)
 		if count ne 0 then slice[indices] = rangemin
 	end
 	if n_elements(rangemax) ne 0 then begin
-		indices = where(slice gt rangemax, count)
+		indices = where(slice gt rangemax, count, /L64)
 		if count ne 0 then slice[indices] = rangemax
 	end
 
