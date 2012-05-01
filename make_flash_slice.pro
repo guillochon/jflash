@@ -72,7 +72,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(colorbarcolor) eq 0 then colorbarcolor = 'white'
 	if n_elements(imgsizex) eq 0 then imgsizex = 1000
 	if n_elements(fprefix) eq 0 then fprefix = ''
-   	if n_elements(thrtype) eq 0 then thrtype = make_array(n_elements(thrvar), value='min') 
+	if n_elements(thrtype) eq 0 and n_elements(thrvar) gt 0 then thrtype=make_array(n_elements(thrvar),/string,value='min')
    	if n_elements(exactmult) eq 0 then exactmult = 1.0
 	if n_elements(datatime) ne 0 then time = datatime
 	if n_elements(charsize) eq 0 then charsize = 1.0
@@ -255,27 +255,10 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	;below may not work for diagonal slices
 	for i=0,n_elements(thrvar)-1 do begin
-		;thrloaded = 0
-		;if n_elements(var) eq 1 then begin
-		;	if var eq thrvar[i] and special eq '' then begin
-		;		thrloaded = 1
-		;		thrslice[*,*,*,i] = slice
-		;	endif
-		;endif
-		;if thrloaded eq 0 then begin
-		;	for j=0,i-1 do begin
-		;		if thrvar[i] eq thrvar[j] then begin
-		;			thrslice[*,*,*,i] = thrslice[*,*,*,j]
-		;			thrloaded = 1
-		;		endif
-		;	endfor
-		;	if thrloaded eq 0 then begin
-				load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, simsize=simsize, $
-					refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
-				thrslice[*,*,*,i] = newthrslice
-		;	endif	
-		;endif
+		load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
+			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, simsize=simsize, $
+			refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
+		thrslice[*,*,*,i] = newthrslice
 	endfor
 
 	if n_elements(contours) ne 0 then begin
