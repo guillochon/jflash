@@ -141,6 +141,16 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		xrange = xr
 		yrange = yr
 		zrange = zr
+	endif else if special eq 'column_x' then begin
+		sliceplane = 'x'
+		xrange = xr
+		yrange = yr
+		zrange = zr
+	endif else if special eq 'column_y' then begin
+		sliceplane = 'y'
+		xrange = xr
+		yrange = yr
+		zrange = zr
 	endif else if special eq 'column_z' then begin
 		sliceplane = 'z'
 		xrange = xr
@@ -233,24 +243,6 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice_dims = [slice_dims, 1]
 	endif
 
-	if keyword_set(log) then begin
-		if ~keyword_set(lmin) then begin
-			min_pos = min(slice[where(slice gt 0.0, /L64)])
-			tmp_indx = where(slice le 0.0)
-			if tmp_indx[0] ne -1 then slice[tmp_indx] = min_pos
-			slice = alog10(slice)
-		endif else begin
-			tmp_slice = dblarr(slice_dims)
-			tmp_ind = where(slice gt 0.0 and abs(slice) ge 10.0^lmin)
-			tmp_slice[tmp_ind] = alog10(slice[tmp_ind])
-			if min(tmp_slice[tmp_ind]) lt 0 then tmp_slice[tmp_ind] = tmp_slice[tmp_ind] - min(tmp_slice[tmp_ind])
-			tmp_ind = where(slice lt 0.0 and abs(slice) ge 10.0^lmin)
-			tmp_slice[tmp_ind] = -alog10(abs(slice[tmp_ind]))
-			if max(tmp_slice[tmp_ind]) gt 0 then tmp_slice[tmp_ind] = tmp_slice[tmp_ind] - max(tmp_slice[tmp_ind])
-			slice = tmp_slice
-		endelse
-	endif
-
 	thrslice = dblarr(slice_dims[0],slice_dims[1],slice_dims[2],n_elements(thrvar))
 
 	;below may not work for diagonal slices
@@ -272,27 +264,6 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endif
 	endif
 		
-	if keyword_set(log) then begin
-		if n_elements(rangemin) gt 0 then rangemin = alog10(rangemin)
-		if n_elements(rangemax) gt 0 then rangemax = alog10(rangemax)
-	endif
-
-	if n_elements(rangemin) ne 0 then begin
-		minindices = where(slice lt rangemin, count)
-		if count ne 0 then slice[minindices] = rangemin
-	endif
-	if n_elements(rangemax) ne 0 then begin
-		if keyword_set(lmin) then begin
-			maxindices = where(slice gt rangemax, count)
-			if count ne 0 then slice[maxindices] = rangemax
-			minindices = where(-slice gt rangemax, count)
-			if count ne 0 then slice[minindices] = rangemax
-		endif else begin
-			maxindices = where(slice gt rangemax, count)
-			if count ne 0 then slice[maxindices] = rangemax
-		endelse
-	endif
-
 	if keyword_set(excision) then begin
 		exx = excision[0]
 		exy = excision[1]
@@ -312,33 +283,39 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		if keyword_set(rangemax) then max_val = rangemax else max_val = max(slice)
 	endif else begin
 		indices = indgen(n_elements(slice))
-		count = 0
 		for i=0,n_elements(thrvar)-1 do begin
 			if thrtype[i] eq 'max' then begin
-				indices = cmset_op(indices, 'AND', where(reform(thrslice[*,*,*,i]) le thrval[i], lcount))
+				newindices = where(reform(thrslice[*,*,*,i]) le thrval[i], lcount)
 			endif else begin
-				indices = cmset_op(indices, 'AND', where(reform(thrslice[*,*,*,i]) ge thrval[i], lcount))
+				newindices = where(reform(thrslice[*,*,*,i]) ge thrval[i], lcount)
 			endelse
-			count = count + lcount
+			if lcount gt 0 then begin
+				indices = -1
+				break
+			endif else begin
+				indices = cmset_op(indices, 'AND', newindices)
+			endelse
 		endfor
-		if count gt 0 then begin
+		if indices[0] ne -1 then begin
 			min_val = min(slice[indices])
+			max_val = max(slice[indices])
 			if n_elements(fieldslicex) ne 0 then begin
 				min_fieldx_val = min(abs(fieldslicex[indices]))
 				min_fieldy_val = min(abs(fieldslicey[indices]))
 			endif
-			max_val = max(slice[indices])
-		endif
+		endif else begin
+			min_val = min(slice)
+			max_val = max(slice)
+			if n_elements(fieldslicex) ne 0 then begin
+				min_fieldx_val = min(abs(fieldslicex))
+				min_fieldy_val = min(abs(fieldslicey))
+			endif
+		endelse
 	endelse
 
 	if n_elements(contourslice) ne 0 then begin
-		if keyword_set(log) then begin
-			min_cont_val = alog10(contours.min)
-			max_cont_val = alog10(contours.max)
-		endif else begin
-			min_cont_val = contours.min
-			max_cont_val = contours.max
-		endelse
+		min_cont_val = contours.min
+		max_cont_val = contours.max
 	endif
 	
 	if n_elements(symrange) eq 0 then begin
@@ -411,9 +388,66 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice = reform(newslice)
 	endif
 
-	if (special eq 'column_z') then begin
-		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
+	if (special eq 'column_x') then begin
+		slice = total(slice, 1)*(xcoords[1]-xcoords[0])
 	endif
+	if (special eq 'column_y') then begin
+		slice = total(slice, 2)*(ycoords[1]-ycoords[0])
+	endif
+	if (special eq 'column_z') then begin
+		if keyword_set(rangemin) then begin
+			indices = where(slice eq rangemin, count, /l64)
+			if count ne 0 then slice[indices] = 0.e0
+		endif
+		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
+		if keyword_set(rangemin) then begin
+			indices = where(slice eq 0.e0, count, /l64)
+			if count ne 0 then slice[indices] = rangemin
+		endif
+	endif
+
+	if n_elements(rangemin) ne 0 then begin
+		minindices = where(slice lt rangemin, count)
+		if count ne 0 then slice[minindices] = rangemin
+	endif
+	if n_elements(rangemax) ne 0 then begin
+		if keyword_set(lmin) then begin
+			maxindices = where(slice gt rangemax, count)
+			if count ne 0 then slice[maxindices] = rangemax
+			minindices = where(-slice gt rangemax, count)
+			if count ne 0 then slice[minindices] = rangemax
+		endif else begin
+			maxindices = where(slice gt rangemax, count)
+			if count ne 0 then slice[maxindices] = rangemax
+		endelse
+	endif
+
+	if keyword_set(log) then begin
+		if ~keyword_set(lmin) then begin
+			min_pos = min(slice[where(slice gt 0.0, /L64)])
+			tmp_indx = where(slice le 0.0)
+			if tmp_indx[0] ne -1 then slice[tmp_indx] = min_pos
+			slice = alog10(slice)
+		endif else begin
+			tmp_slice = dblarr(slice_dims)
+			tmp_ind = where(slice gt 0.0 and abs(slice) ge 10.0^lmin)
+			tmp_slice[tmp_ind] = alog10(slice[tmp_ind])
+			if min(tmp_slice[tmp_ind]) lt 0 then tmp_slice[tmp_ind] = tmp_slice[tmp_ind] - min(tmp_slice[tmp_ind])
+			tmp_ind = where(slice lt 0.0 and abs(slice) ge 10.0^lmin)
+			tmp_slice[tmp_ind] = -alog10(abs(slice[tmp_ind]))
+			if max(tmp_slice[tmp_ind]) gt 0 then tmp_slice[tmp_ind] = tmp_slice[tmp_ind] - max(tmp_slice[tmp_ind])
+			slice = tmp_slice
+		endelse
+	endif
+
+	if keyword_set(rangemin) then begin
+		plot_min = rangemin
+		if keyword_set(log) then plot_min = alog10(plot_min)	
+	endif else plot_min = min(slice)
+	if keyword_set(rangemax) then begin
+		plot_max = rangemax
+		if keyword_set(log) then plot_max = alog10(plot_max)	
+	endif else plot_max = max(slice)
 
 	thisDevice = !D.NAME
 	set_plot, 'z'
@@ -448,16 +482,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		thisImage[where(slice lt 0)] = bytscl(slice[where(slice lt 0)],min=min(slice),max=-lmin,top=!D.N_Colors/2)
 		thisImage[where(slice eq 0)] = 128
 	endif else begin
-		if n_elements(rangemin) gt 0 and n_elements(rangemax) gt 0 then begin
-			thisImage = bytscl(slice,min=rangemin,max=rangemax,top=!D.N_Colors-1)
-		endif else if n_elements(rangemin) gt 0 then begin
-			thisImage = bytscl(slice,min=rangemin,top=!D.N_Colors-1)
-			;thisImage2 = bytscl(slice2,min=rangemin,top=!D.N_Colors-1)
-		endif else if n_elements(rangemax) gt 0 then begin
-			thisImage = bytscl(slice,max=rangemax,top=!D.N_Colors-1)
-		endif else begin
-			thisImage = bytscl(slice,max=max_val,min=min_val,top=!D.N_Colors-1)
-		endelse
+		thisImage = bytscl(slice,max=plot_max,min=plot_min,top=!D.N_Colors-1)
 	endelse
 
 	s = SIZE(thisImage)
@@ -692,9 +717,5 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		jps_end, /png 
 		file_delete, output_name
 	endif else if output eq 'ps' then jps_end
-    if keyword_set(log) then begin
-        if n_elements(rangemin) gt 0 then rangemin = 10^rangemin
-        if n_elements(rangemax) gt 0 then rangemax = 10^rangemax
-    endif
     fsc_undefine, slice, dens, temp, velx, vely, velz, gpot, time
 end

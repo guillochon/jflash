@@ -175,11 +175,6 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 		if indices[0] ne -1 then begin
 			min_val = min(slice[indices])
 			max_val = max(slice[indices])
-			if n_elements(rangemin) eq 0 then begin
-				slice[indices] = min_val
-			endif else begin
-				slice[indices] = min([min_val, rangemin])
-			endelse
 		endif else begin
 			min_val = min(slice)
 			max_val = max(slice)
