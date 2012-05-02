@@ -243,7 +243,9 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice_dims = [slice_dims, 1]
 	endif
 
-	thrslice = dblarr(slice_dims[0],slice_dims[1],slice_dims[2],n_elements(thrvar))
+	if keyword_set(thrvar) then begin
+		thrslice = dblarr(slice_dims[0],slice_dims[1],slice_dims[2],n_elements(thrvar))
+	endif
 
 	;below may not work for diagonal slices
 	for i=0,n_elements(thrvar)-1 do begin
