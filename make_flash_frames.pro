@@ -2,7 +2,7 @@
 ; Generates a series of frames from one or more FLASH data files.
 ;
 ; Written by James Guillochon, jfg@ucolick.org
-; (LAST UPDATED 5/14/2009)
+; (LAST UPDATED 5/04/2012)
 ;
 ; PARAMETERS
 ; **Required**
@@ -32,7 +32,7 @@
 ; zticks        (int)             - Number of ticks to draw on z axis (3D only).
 ; log           (bool)            - Scale data logarithmically.
 ; colorbarcolor (str)             - Color of colorbar annotation. 
-; contours    (str)             - Variable used to draw contours on plot.
+; contours      (str)             - Variable used to draw contours on plot.
 ; thrvar        ([str,str,...])   - Variables used as a "threshold," data in regions where thresholds aren't
 ;                                   satisfied are set to rangemin.
 ; thrval        ([dbl,dbl,...])   - Threshold values, see above.

@@ -320,6 +320,12 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	if var eq 'tide' or var eq 'tidex' or var eq 'tidey' or var eq 'tidez' or var eq 'bhbound' or $
 		var eq 'gpresz_tidez' or var eq 'kineskew' then begin
 		jread_amr, filename, VAR_NAME='none', TREE=tree, DATA=unk, PARAMETERS=params
+
+		if ~keyword_set(orbinfo) then begin
+			print, 'Error: Set "orbinfo" equal to the mass of the point mass in grams.'
+			return
+		endif
+		m = orbinfo
 		time = params.time
 
 		data = read_ascii('pruned_orbit.dat')
@@ -478,7 +484,6 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		if var eq 'acomz' then slice = coeff*dens*dz/dr^3.
 	endif	
 	if var eq 'bhbound' then begin
-		m = 1.98892d+39
 		coeff = g*m
 		dr = (dx+xcoords)^2.
 		dr = cmreplicate(dr, [dims[1], dims[2]])
