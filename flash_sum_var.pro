@@ -22,6 +22,7 @@
 ;                                   satisfied are set to rangemin.
 ; thrval        ([dbl,dbl,...])   - Threshold values, see above.
 ; thrtype       ([str,str,...])   - Whether the threshold is a minimum or a maximum, valid values 'min' or 'max'.
+; volnorm       (bool)            - Multiply sum by the volume.
 ; fprefix       (str)             - Prefix to append to output image files, e.g. 'myprefix_restoffilename'
 ; log           (bool)            - Scale data logarithmically.
 ; subtractavg   (bool)            - Subtract the average value from all grid cells when loading variable.
