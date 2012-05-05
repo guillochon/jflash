@@ -1,9 +1,41 @@
+; make_flash_frames.pro
+; Generates a series of frames from one or more FLASH data files.
+;
+; Written by James Guillochon, jfg@ucolick.org
+; (LAST UPDATED 5/04/2012)
+;
+; PARAMETERS
+; **Required**
+; basename      (str)             - Base file name, e.g. 'simulation_hdf5_plt_cnt'.
+; start         (int)             - Which file number to start with.
+; finish        (int)             - Which file number to finish with.
+; var           (str)             - Variable to generate frames from, e.g. 'dens'.
+; xrange        ([dbl, dbl])      - 2 values indicating range of x values to extract.
+; yrange        ([dbl, dbl])      - 2 values indicating range of y values to extract.
+; zrange        ([dbl, dbl])      - 2 values indicating range of z values to extract.
+; sample        (int)             - Number of times to downsample data from highest refinment, must be <= 3.
+; simsize       (dbl)             - Width of the box in cgs units (assumes box is cubical, used for certain variables).
+; stride        (int)             - Stride of frame iteration, default 1.
+; ps            (bool)            - Output plot to .ps file.
+; ytitle        (str)             - y-axis label.
+; thrvar        ([str,str,...])   - Variables used as a "threshold," data in regions where thresholds aren't
+;                                   satisfied are set to rangemin.
+; thrval        ([dbl,dbl,...])   - Threshold values, see above.
+; thrtype       ([str,str,...])   - Whether the threshold is a minimum or a maximum, valid values 'min' or 'max'.
+; fprefix       (str)             - Prefix to append to output image files, e.g. 'myprefix_restoffilename'
+; log           (bool)            - Scale data logarithmically.
+; subtractavg   (bool)            - Subtract the average value from all grid cells when loading variable.
+; usetime       (bool)            - Multiply variable by dt.
+; sum           (bool)            - Sum y values and print.
+; indexlength   (int)             - Number of digits in filename index, e.g. _0000 is 4, _00000 is 5, etc.
+; memefficient  (bool)            - Deallocate variables as soon as they are not needed. Incompatible with revolve plots.
+; subdivide     (int)             - Divide volume into subchunks. Useful for large volumes that cannot be loaded all at once.
+; trackfile     (str)             - File with x-y coordinates used to keep view centered.
+
 pro flash_sum_var,basename,start,finish,var,xrange,yrange,zrange,sample=sample,simsize=simsize,stride=stride,ps=ps,$
 	ytitle=ytitle,thrvar=thrvar,thrval=thrval,volnorm=volnorm,cellsize=cellsize,fprefix=fprefix,log=log,thrtype=thrtype,$
 	subtractavg=subtractavg,usetime=usetime,sum=sum,indexlength=indexlength,memefficient=memefficient,subdivide=subdivide,$
-	retx=retx,rety=rety,orbinfo=orbinfo,$
-	dens=dens, temp=temp, velx=velx, vely=vely, velz=velz, pres=pres, gpot=gpot, time=time,$
-	xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, trackfile=trackfile
+	retx=retx,rety=rety,orbinfo=orbinfo,trackfile=trackfile
 	
     xtitle = 'Time (s)'
     if ~n_elements(ytitle) then ytitle = var[0]
