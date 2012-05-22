@@ -53,8 +53,8 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(velx) eq 0 then begin
-			velx = jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
-				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
+			velx = double(jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
+				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		if var eq 'velx' then slice = velx
 		dims = size(velx, /dimensions)
@@ -63,8 +63,8 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(vely) eq 0 then begin
-			vely = jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
-				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
+			vely = double(jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
+				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		if var eq 'vely' then slice = vely
 		dims = size(vely, /dimensions)
@@ -73,18 +73,19 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		var eq 'gvelzz' or var eq 'bhbound' or var eq 'kine' or var eq 'momentum' or var eq 'selfbound' or $
 		var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
 		if n_elements(velz) eq 0 then begin
-			velz = (jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+			velz = double(jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
+				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
-		slice = velz
+		if var eq 'velz' then slice = velz
 		if var eq 'absvelz' then slice = abs(velz)
 		dims = size(velz, /dimensions)
 	endif
 	if var eq 'gpot' or var eq 'selfbound' or var eq 'gpotener' then begin
 		if n_elements(gpot) eq 0 then begin
-			gpot = (jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+			gpot = double(jloaddata(filename,'gpot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 			gpot = gpot/2. ;FLASH doubles this for some reason...
 		endif
-		slice = gpot
+		if var eq 'gpot' then slice = gpot
 		if var eq 'gpot' then begin
 			if keyword_set(log) then slice = -slice
 		endif
@@ -304,7 +305,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		slice = dens*prot
 	endif
 
-	if n_elements(slice) gt 0 then begin
+	if n_elements(dims) gt 0 then begin
 		if sliceplane eq 'x' then begin
 			if n_elements(dims) eq 2 then dims = [1, dims[0], dims[1]]
 		endif
@@ -318,7 +319,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 
 	;Calculate trajectory information for variables that need it.
 	if var eq 'tide' or var eq 'tidex' or var eq 'tidey' or var eq 'tidez' or var eq 'bhbound' or $
-		var eq 'gpresz_tidez' or var eq 'kineskew' then begin
+		var eq 'gpresz_tidez' or var eq 'kineskew' or var eq 'selfbound' then begin
 		jread_amr, filename, VAR_NAME='none', TREE=tree, DATA=unk, PARAMETERS=params
 
 		if ~keyword_set(orbinfo) then begin
@@ -332,21 +333,13 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		data = data.field01
 		t = data[0,*]
 		dattime = min(abs(t - time), tindex)
-		mvx = data[28,tindex]
-		mvy = data[29,tindex]
-		mvz = data[30,tindex]
+		hxcm = data[1,tindex]
+		hycm = data[2,tindex]
+		hzcm = data[3,tindex]
 
 		hvx = data[4,tindex]
 		hvy = data[5,tindex]
 		hvz = data[6,tindex]
-
-		mxcm = data[25,tindex]
-		mycm = data[26,tindex]
-		mzcm = data[27,tindex]
-				   
-		hxcm = data[1,tindex]
-		hycm = data[2,tindex]
-		hzcm = data[3,tindex]
 
 		oxcm = data[7,tindex]
 		oycm = data[8,tindex]
@@ -354,6 +347,14 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 				   
 		ovx = data[10,tindex]
 		ovy = data[11,tindex]
+
+		mxcm = data[25,tindex]
+		mycm = data[26,tindex]
+		mzcm = data[27,tindex]
+
+		mvx = data[28,tindex]
+		mvy = data[29,tindex]
+		mvz = data[30,tindex]
 
 		dx = -mxcm + oxcm - hxcm
 		dy = -mycm + oycm - hycm
@@ -521,23 +522,11 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 			avely = vely - total(dens*vely)/totmass
 			avelz = velz - total(dens*velz)/totmass
 		endif else begin
-			avelx = velx
-			avely = vely
-			avelz = velz
+			avelx = double(velx) - mvx
+			avely = double(vely) - mvy
+			avelz = double(velz) - mvz
 		endelse
-		slice = 0.5*(avelx^2 + avely^2 + avelz^2); $
-			;- coeff/sqrt((dx+(xrange[1]-xrange[0])/2.)^2.+(dy+(yrange[1]-yrange[0])/2.)^2.+(dz+(zrange[1]-zrange[0])/2.)^2.)
-        ;for j=0,dims[0]-1 do begin
-        ;    for k=0,dims[1]-1 do begin
-        ;        for l=0,dims[2]-1 do begin
-		;			slice[j,k,l] = slice[j,k,l]+coeff/sqrt(dx2[j]+dy2[k]+dz2[l])
-        ;        endfor
-        ;    endfor
-        ;endfor
-		;energy density
-		slice = dens*(temporary(slice) + gpot)
-		;specific energy density
-		;slice = temporary(slice) + gpot
+		slice = 0.5*(avelx^2 + avely^2 + avelz^2) + gpot
 	endif	
 	if var eq 'tide' or var eq 'tidex' or var eq 'tidey' or var eq 'tidez' or var eq 'gpresz_tidez' then begin
 		d3 = double(norm([x,y]))^3.
