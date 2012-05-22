@@ -60,7 +60,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	annotatepos=annotatepos,output=output,special=special,hideaxes=hideaxes,negative=negative,subtractavg=subtractavg,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
 	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,$
-	timeunit=timeunit
+	timeunit=timeunit,hideimage=hideimage
 
     compile_opt idl2
     fname = filename
@@ -80,7 +80,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(output) eq 0 then output = 'png'
 	if n_elements(special) eq 0 then special = ''
 	if n_elements(contours) ne 0 then begin
-		if n_tags(contours) ne 4 then begin
+		if n_tags(contours) ne 6 then begin
 			print, 'Error: Wrong contours specification.'
 			return
 		endif
@@ -197,14 +197,14 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		if (n_elements(var) gt 1) then begin
 			for i=0,n_elements(var)-1 do begin
 				load_flash_var, tmpslice, filename, var[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-					velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
+					velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 					xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 					trackfile=trackfile, memefficient=memefficient
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
-				velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
+				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 				xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 				trackfile=trackfile, memefficient=memefficient
 		endelse
@@ -229,9 +229,9 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	if keyword_set(fieldvarx) then begin
 		load_flash_var, fieldslicex, filename, fieldvarx, xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
+			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
 		load_flash_var, fieldslicey, filename, fieldvary, xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
+			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
 	endif
 
 	slice = reform(slice)
@@ -250,20 +250,21 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	;below may not work for diagonal slices
 	for i=0,n_elements(thrvar)-1 do begin
 		load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, simsize=simsize, $
+			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, $
 			refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
 		thrslice[*,*,*,i] = newthrslice
 	endfor
 
-	if n_elements(contours) ne 0 then begin
-		if contours.var eq var then contourslice = slice else begin
-			for i=0,n_elements(thrvar)-1 do if thrvar[i] eq contours.var then contourslice = thrslice[*,*,*,i]
-		endelse
-		if n_elements(contourslice) eq 0 then begin
+	if keyword_set(contours) then begin
+		;if contours.var eq var then contourslice = slice else begin
+		;	for i=0,n_elements(thrvar)-1 do if thrvar[i] eq contours.var then contourslice = thrslice[*,*,*,i]
+		;endelse
+		;if n_elements(contourslice) eq 0 then begin
 			load_flash_var, contourslice, filename, contours.var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, refcoor=refcoor, $
 				orbinfo=orbinfo
-		endif
+			contourslice = reform(contourslice)
+		;endif
 	endif
 		
 	if keyword_set(excision) then begin
@@ -406,6 +407,13 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			indices = where(slice eq 0.e0, count, /l64)
 			if count ne 0 then slice[indices] = rangemin
 		endif
+		if keyword_set(contours) then begin
+			indices = where(contourslice eq min_cont_val, count, /l64)
+			if count ne 0 then contourslice[indices] = 0.e0
+			contourslice = total(contourslice, 3)*(zcoords[1]-zcoords[0])
+			indices = where(contourslice eq 0.e0, count, /l64)
+			if count ne 0 then contourslice[indices] = min_cont_val
+		endif
 	endif
 
 	if n_elements(rangemin) ne 0 then begin
@@ -541,12 +549,14 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endcase
 
 	!p.position = pos
-	if slicetype eq 'minor' or slicetype eq 'major' then begin
-		tvimage, image3d, position=pos,/nointerpolation
-	endif else begin
-		tvimage, image3d, image3d2, /keep_aspect, position=pos;,/nointerpolation
-		;blendimage, image3d, image3d2, alpha=0.0, /keep_aspect, position=pos,/nointerpolation
-	endelse
+	if ~keyword_set(hideimage) then begin
+		if slicetype eq 'minor' or slicetype eq 'major' then begin
+			tvimage, image3d, position=pos,/nointerpolation
+		endif else begin
+			tvimage, image3d, image3d2, /keep_aspect, position=pos;,/nointerpolation
+			;blendimage, image3d, image3d2, alpha=0.0, /keep_aspect, position=pos,/nointerpolation
+		endelse
+	endif
 
 	!p.color = fsc_color("white",/nodisplay)
 	if ~keyword_set(hideaxes) then begin
@@ -652,9 +662,11 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endcase
 	endif
 
-	if n_elements(contourslice) gt 0 then $
+	if n_elements(contourslice) gt 0 then begin
+		tvlct, contours.colortable[*,0], contours.colortable[*,1], contours.colortable[*,2]
 		contour, contourslice, levels=(1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val, $
-		/noerase, xstyle=1+4, ystyle=1+4, position=pos, color=fsc_color('cyan')
+			/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=contours.colorindex, /closed
+	endif
 
 	case sliceplane of
 		'x': begin
@@ -710,8 +722,8 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endif else begin
 			colorbar_pos=[0.89, 0.75 + 0.13*(double(slice_dims[1])/double(slice_dims[0])-1.0), 0.92, 0.91]
 		endelse
-		fsc_colorbar, /vertical, minrange=min_val, $
-			maxrange=max_val, position=colorbar_pos, /nodisplay,$
+		fsc_colorbar, /vertical, minrange=plot_min, $
+			maxrange=plot_max, position=colorbar_pos, /nodisplay,$
 			annotatecolor=colorbarcolor, format='(G10.3)', charsize=charsize*min([imgsizex,imgsizey])/1000.
 	end
 
