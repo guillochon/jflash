@@ -196,7 +196,7 @@ FUNCTION jPSConfig,                    $
    Demi=demi,                         $ ; Set this keyword to select the Demi font style.
    Directory=directory,               $ ; Set thie keyword to the name of the starting directory. Current directory by default.
    Encapsulate=encapsulate,           $ ; Set this keyword to select Encapsulated PostScript output.
-   European=european,                 $ ; Set this keyword to indicate "european" mode (i.e., A4 page and centimeter units).
+   ;European=european,                 $ ; Set this keyword to indicate "european" mode (i.e., A4 page and centimeter units).
    Filename=filename,                 $ ; Set this keyword to the name of the file. Default: 'idl.ps'
    FontInfo=fontinfo,                 $ ; Set this keyword if you want font information in the FSC_PSCONFIG GUI.
    FontSize=fontsize,                 $ ; Set this keyword to the font size. Between 6 and 36. Default is 12.
@@ -245,7 +245,7 @@ IF N_Elements(psObject) EQ 0 THEN BEGIN
       Demi=demi,                         $
       Directory=directory,               $
       Encapsulate=encapsulate,           $
-      European=european,                 $
+      ;European=european,                 $
       Filename=filename,                 $
       FontSize=fontsize,                 $
       FontType=fonttype,                 $
