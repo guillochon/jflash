@@ -170,8 +170,6 @@ case params.ndim of
                                   TREE=tree, PARAMETERS=params, $
                                   SAMPLE=sample, LWANT=lwant, /DOUBLE)
             endif else begin
-                print, tree
-
                 sData = jmerge_amr(reform(unk, params.totBlocks, $
                                               params.nxb, $
                                               params.nxb, $
