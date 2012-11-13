@@ -40,7 +40,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 					 'he','nuc','gdensz','tidex','tidey','tidez','h1dens','he4dens','c12dens','n14dens','o16dens','ne20dens','mg24dens',$
 					 'si28dens','s32dens','ar36dens','ca40dens','ti44dens','cr48dens','fe52dens','fe54dens','ni56dens','neutdens',$
 					 'protdens','gpotener','eintener','torque','torqmom','mach','csnd','acom','acomx','acomy','acomz','mass',$
-					 'selfbound','kinpresratio','kinpresdiff','enuctot','a20a32dens','a36a56dens','cfl','mominertia']) ge 1 then begin
+					 'selfbound','kinpresratio','kinpresdiff','enuctot','a20a32dens','a36a56dens','cfl','mominertia','jeans']) ge 1 then begin
 		if n_elements(dens) eq 0 then begin
 			dens = jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords)
 		endif
@@ -91,7 +91,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		endif
 		dims = size(gpot, /dimensions)
 	endif
-	if total(strcmp(var, ['pres','kinpresratio','kinpresdiff','mach','csnd','cfl']), /pre) eq 1 then begin
+	if total(strcmp(var, ['pres','kinpresratio','kinpresdiff','mach','csnd','cfl','jeans']), /pre) eq 1 then begin
 		if n_elements(pres) eq 0 then begin
 			pres = (jloaddata(filename,'pres',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
@@ -460,6 +460,11 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		csnd = sqrt(gamc*pres/dens)
 		slice = (xcoords[1] - xcoords[0])/(csnd + max(abs([[[velx]], [[vely]], [[velz]]]), dimension=3))
+	endif
+	if var eq 'jeans' then begin
+		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
+		slice = sqrt(!pi*gamc*pres/dens^2./g) ; lambda_jeans
+		slice = (xcoords[1] - xcoords[0])/slice
 	endif
 	if var eq 'mach' then begin
 		;slice = sqrt(velx^2 + vely^2 + velz^2) / sqrt(138574524.*temp)

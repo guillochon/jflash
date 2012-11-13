@@ -48,7 +48,6 @@ pro flash_var_max,basename,start,finish,vars,xrange,yrange,zrange,ps=ps,sample=s
 				dens=dens, temp=temp, velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample
 			x[i-start:finish-start] = time
 			y[i-start:finish-start, j] = max(slice)
-			print, y
 			var_string = var_string + vars[j] + '_'
 		endfor
 		if keyword_set(ps) then device, filename='max_'+var_string+basename+'.eps', xsize=10.5, ysize=7.5, $
@@ -65,6 +64,6 @@ pro flash_var_max,basename,start,finish,vars,xrange,yrange,zrange,ps=ps,sample=s
 	print, xydat
 	fname = 'max_'+var_string+basename+'.dat'
 	openw,1,fname
-	printf,1,xydat,format='(F14.7,1X,F14.7)'
+	printf,1,xydat,format='(F15.7,1X,F15.7)'
 	close,1
 end
