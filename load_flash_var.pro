@@ -100,14 +100,14 @@ pro load_flash_var, slice, filename, var, xrange, yrange, zrange, sliceplane=sli
 	endif
 	if var eq 'enuc' or var eq 'enuctot' or var eq 'enucratio' then begin
 		if n_elements(enuc) eq 0 then begin
-			enuc = (jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords))
+			enuc = (jloaddata(filename,'enuc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		if var eq 'enuc' then slice = enuc
 		dims = size(enuc, /dimensions)
 	endif
 	if var eq 'eint' or var eq 'eintener' or var eq 'enucratio' then begin
 		if n_elements(eint) eq 0 then begin
-			eint = (jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords))
+			eint = (jloaddata(filename,'eint',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords))
 		endif
 		if var eq 'eint' then slice = eint
 		dims = size(eint, /dimensions)
