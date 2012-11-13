@@ -101,7 +101,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 					if keyword_set(log) then begin
 						ct_part_len[i+1] = floor(256.*(alog10(ctswitch)-alog10(rangemin))/(alog10(rangemax) - alog10(rangemin)))	
 					endif else begin
-						ct_part_len[i+1] = floor(256.*ctswitch/(rangemax - rangemin))	
+						ct_part_len[i+1] = floor(256.*(ctswitch - rangemin)/(rangemax - rangemin))	
 					endelse
 				endif else begin
 					if keyword_set(log) then begin
