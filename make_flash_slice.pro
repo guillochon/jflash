@@ -79,6 +79,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(annotatepos) eq 0 then annotatepos = 'ur'
 	if n_elements(output) eq 0 then output = 'png'
 	if n_elements(special) eq 0 then special = ''
+	if n_elements(timeunit) eq 0 then timeunit = 's'
 	if n_elements(contours) ne 0 then begin
 		if n_tags(contours) ne 6 then begin
 			print, 'Error: Wrong contours specification.'
@@ -529,20 +530,20 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	case sliceplane of
 		'x': begin
-			pos[0] = pos[0] + (pos[2] - pos[0])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
-			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoords[0] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
+			;pos[0] = pos[0] + (pos[2] - pos[0])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
+			;pos[1] = pos[1] + (pos[3] - pos[1])*(zcoords[0] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
 			pos[2] = pos[0] + (pos[2] - pos[0])*(ycoords[n_elements(ycoords)-1] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
 			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoords[n_elements(zcoords)-1] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
 		end
 		'y': begin
-			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoords[0] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
-			pos[1] = pos[1] + (pos[3] - pos[1])*(zcoords[0] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
+			;pos[0] = pos[0] + (pos[2] - pos[0])*(xcoords[0] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
+			;pos[1] = pos[1] + (pos[3] - pos[1])*(zcoords[0] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
 			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoords[n_elements(xcoords)-1] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
 			pos[3] = pos[1] + (pos[3] - pos[1])*(zcoords[n_elements(zcoords)-1] - zrange[0])/(zcoords[n_elements(zcoords)-1] - zcoords[0])
 		end
 		'z': begin
-			pos[0] = pos[0] + (pos[2] - pos[0])*(xcoords[0] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
-			pos[1] = pos[1] + (pos[3] - pos[1])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
+			;pos[0] = pos[0] + (pos[2] - pos[0])*(xcoords[0] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
+			;pos[1] = pos[1] + (pos[3] - pos[1])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
 			pos[2] = pos[0] + (pos[2] - pos[0])*(xcoords[n_elements(xcoords)-1] - xrange[0])/(xcoords[n_elements(xcoords)-1] - xcoords[0])
 			pos[3] = pos[1] + (pos[3] - pos[1])*(ycoords[n_elements(ycoords)-1] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
 		end
