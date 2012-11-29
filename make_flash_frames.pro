@@ -107,10 +107,14 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 
 	if n_elements(imgsize) eq 0 then imgsize = 1000
 
-	if (not (n_elements(xrange) eq 1 or $
-		n_elements(yrange) eq 1 or $
-		n_elements(zrange) eq 1) and $
+	if ((n_elements(xrange) eq 2 and $
+		n_elements(yrange) eq 2 and $
+		n_elements(zrange) eq 2) and $
 		special ne 'revolve_z' and special ne 'column_z') then vol = 1
+
+	if (n_elements(xrange) eq 1) then xrange = [xrange, xrange]
+	if (n_elements(yrange) eq 1) then yrange = [yrange, yrange]
+	if (n_elements(zrange) eq 1) then zrange = [zrange, zrange]
 
 	if keyword_set(vol) then begin
 		if n_elements(ax) eq 0 then ax = 30
