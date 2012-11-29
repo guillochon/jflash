@@ -121,17 +121,17 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endfor
 	endif
 
-	if (n_elements(xr) eq 1) then begin
+	if (n_elements(xr) eq 1 or xr[0] eq xr[1]) then begin
 		sliceplane = 'x'
 		xrange = [xr[0],xr[0]]
 		yrange = yr
 		zrange = zr
-	endif else if (n_elements(yr) eq 1) then begin
+	endif else if (n_elements(yr) eq 1 or yr[0] eq yr[1]) then begin
 		sliceplane = 'y'
 		xrange = xr
 		yrange = [yr[0],yr[0]]
 		zrange = zr
-	endif else if (n_elements(zr) eq 1) then begin
+	endif else if (n_elements(zr) eq 1 or zr[0] eq zr[1]) then begin
 		sliceplane = 'z'
 		xrange = xr
 		yrange = yr
@@ -553,7 +553,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		if slicetype eq 'minor' or slicetype eq 'major' then begin
 			tvimage, image3d, position=pos,/nointerpolation
 		endif else begin
-			tvimage, image3d, image3d2, /keep_aspect, position=pos;,/nointerpolation
+			tvimage, image3d, image3d2, position=pos;,/nointerpolation
 			;blendimage, image3d, image3d2, alpha=0.0, /keep_aspect, position=pos,/nointerpolation
 		endelse
 	endif
