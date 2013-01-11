@@ -688,16 +688,19 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endcase
 	endif
 
-	if contours.log eq 1 then begin
-		contourlevels = 1.e1^((1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(alog10(max_cont_val)-alog10(min_cont_val))+alog10(min_cont_val))
-	endif else begin
-		contourlevels = (1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val
-	endelse
-	if n_elements(contourslice) gt 0 then begin
-		tvlct, contours.colortable[*,0], contours.colortable[*,1], contours.colortable[*,2]
-		contour, contourslice, levels=contourlevels, $
-			/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=contours.colorindex, /closed
-	endif
+	if (keyword_set(contours)) then begin
+		if contours.log eq 1 then begin
+			contourlevels = 1.e1^((1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(alog10(max_cont_val)-alog10(min_cont_val))+alog10(min_cont_val))
+		endif else begin
+			contourlevels = (1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val
+		endelse
+
+		if n_elements(contourslice) gt 0 then begin
+			tvlct, contours.colortable[*,0], contours.colortable[*,1], contours.colortable[*,2]
+			contour, contourslice, levels=contourlevels, $
+				/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=contours.colorindex, /closed
+		endif
+	end
 
 	case sliceplane of
 		'x': begin
