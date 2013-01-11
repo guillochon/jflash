@@ -81,7 +81,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(special) eq 0 then special = ''
 	if n_elements(timeunit) eq 0 then timeunit = 's'
 	if n_elements(contours) ne 0 then begin
-		if n_tags(contours) ne 6 then begin
+		if n_tags(contours) lt 6 then begin
 			print, 'Error: Wrong contours specification.'
 			return
 		endif
@@ -392,17 +392,42 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice = reform(newslice)
 	endif
 
-	if (special eq 'column_x') then begin
-		slice = total(slice, 1)*(xcoords[1]-xcoords[0])
-	endif
-	if (special eq 'column_y') then begin
-		slice = total(slice, 2)*(ycoords[1]-ycoords[0])
-	endif
-	if (special eq 'column_z') then begin
+	if (special eq 'column_x' or special eq 'column_y' or special eq 'column_z') then begin
 		if keyword_set(rangemin) then begin
 			indices = where(slice eq rangemin, count, /l64)
 			if count ne 0 then slice[indices] = 0.e0
 		endif
+	endif
+
+	if (special eq 'column_x') then begin
+		slice = total(slice, 1)*(xcoords[1]-xcoords[0])
+		if keyword_set(rangemin) then begin
+			indices = where(slice eq 0.e0, count, /l64)
+			if count ne 0 then slice[indices] = rangemin
+		endif
+		if keyword_set(contours) then begin
+			indices = where(contourslice eq min_cont_val, count, /l64)
+			if count ne 0 then contourslice[indices] = 0.e0
+			contourslice = total(contourslice, 1)*(xcoords[1]-xcoords[0])
+			indices = where(contourslice eq 0.e0, count, /l64)
+			if count ne 0 then contourslice[indices] = min_cont_val
+		endif
+	endif
+	if (special eq 'column_y') then begin
+		slice = total(slice, 2)*(ycoords[1]-ycoords[0])
+		if keyword_set(rangemin) then begin
+			indices = where(slice eq 0.e0, count, /l64)
+			if count ne 0 then slice[indices] = rangemin
+		endif
+		if keyword_set(contours) then begin
+			indices = where(contourslice eq min_cont_val, count, /l64)
+			if count ne 0 then contourslice[indices] = 0.e0
+			contourslice = total(contourslice, 2)*(ycoords[1]-ycoords[0])
+			indices = where(contourslice eq 0.e0, count, /l64)
+			if count ne 0 then contourslice[indices] = min_cont_val
+		endif
+	endif
+	if (special eq 'column_z') then begin
 		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
 		if keyword_set(rangemin) then begin
 			indices = where(slice eq 0.e0, count, /l64)
@@ -663,9 +688,14 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endcase
 	endif
 
+	if contours.log eq 1 then begin
+		contourlevels = 1.e1^((1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(alog10(max_cont_val)-alog10(min_cont_val))+alog10(min_cont_val))
+	endif else begin
+		contourlevels = (1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val
+	endelse
 	if n_elements(contourslice) gt 0 then begin
 		tvlct, contours.colortable[*,0], contours.colortable[*,1], contours.colortable[*,2]
-		contour, contourslice, levels=(1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val, $
+		contour, contourslice, levels=contourlevels, $
 			/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=contours.colorindex, /closed
 	endif
 
