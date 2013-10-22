@@ -60,7 +60,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	annotatepos=annotatepos,output=output,special=special,hideaxes=hideaxes,negative=negative,subtractavg=subtractavg,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
 	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,$
-	timeunit=timeunit,hideimage=hideimage
+	timeunit=timeunit,hideimage=hideimage,useextrema=useextrema,scaleval=scaleval
 
     compile_opt idl2
     fname = filename
@@ -81,47 +81,12 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(special) eq 0 then special = ''
 	if n_elements(timeunit) eq 0 then timeunit = 's'
 	if n_elements(contours) ne 0 then begin
-		if n_tags(contours) ne 6 then begin
+		if n_tags(contours) lt 6 then begin
 			print, 'Error: Wrong contours specification.'
 			return
 		endif
 	endif
    	if output ne 'x' then nowindow = 1
-	if n_elements(my_ct) gt 1 then begin
-		custom_ct = intarr(256,3)
-		ct_part_len = make_array(n_elements(my_ct)+1, value=0)
-		for i=0,n_elements(my_ct)-1 do begin
-			reverse_ct = 0
-			if my_ct[i] lt 0 then begin
-				reverse_ct = 1
-			endif
-			loadct, abs(my_ct[i]), rgb_table=colors
-			;if i eq 0 then colors = reverse(colors,1)
-			if keyword_set(ctswitch) then begin
-				if i eq 0 then begin	
-					if keyword_set(log) then begin
-						ct_part_len[i+1] = floor(256.*(alog10(ctswitch)-alog10(rangemin))/(alog10(rangemax) - alog10(rangemin)))	
-					endif else begin
-						ct_part_len[i+1] = floor(256.*(ctswitch - rangemin)/(rangemax - rangemin))	
-					endelse
-				endif else begin
-					if keyword_set(log) then begin
-						ct_part_len[i+1] = floor(256.*(alog10(rangemax)-alog10(ctswitch))/(alog10(rangemax) - alog10(rangemin)))	
-					endif else begin
-						ct_part_len[i+1] = floor(256.*(rangemax - ctswitch)/(rangemax - rangemin))	
-					endelse
-				endelse
-			endif else begin
-				ct_part_len[i+1] = floor(256./n_elements(my_ct))
-			endelse
-			if reverse_ct eq 1 then begin
-				custom_ct[ct_part_len[i]:ct_part_len[i]+ct_part_len[i+1]-1,*] = reverse(colors[floor(dindgen(ct_part_len[i+1])*256./ct_part_len[i+1]),*])
-			endif else begin
-				custom_ct[ct_part_len[i]:ct_part_len[i]+ct_part_len[i+1]-1,*] = colors[floor(dindgen(ct_part_len[i+1])*256./ct_part_len[i+1]),*]
-			endelse
-		endfor
-	endif
-
 	if (n_elements(xr) eq 1 or xr[0] eq xr[1]) then begin
 		sliceplane = 'x'
 		xrange = [xr[0],xr[0]]
@@ -202,16 +167,64 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 					xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 					trackfile=trackfile, memefficient=memefficient,particles=particles
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
+				if (keyword_set(scaleval)) then slice = slice*scaleval
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 				xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
 				trackfile=trackfile, memefficient=memefficient,particles=particles
+			if (keyword_set(scaleval)) then slice = slice*scaleval
 		endelse
 	endif else begin
 		slice = extdata
 	endelse
+
+	if (n_elements(rangemax) ne 0) then begin
+		if (keyword_set(useextrema)) then begin
+			rngmax = rangemax*max(slice)
+		endif else rngmax = rangemax
+	endif
+	if (n_elements(rangemin) ne 0) then begin
+		if (keyword_set(useextrema)) then begin
+			rngmin = rangemin*max(slice)
+		endif else rngmin = rangemin
+	endif
+
+	if n_elements(my_ct) gt 1 then begin
+		custom_ct = intarr(256,3)
+		ct_part_len = make_array(n_elements(my_ct)+1, value=0)
+		for i=0,n_elements(my_ct)-1 do begin
+			reverse_ct = 0
+			if my_ct[i] lt 0 then begin
+				reverse_ct = 1
+			endif
+			loadct, abs(my_ct[i]), rgb_table=colors
+			;if i eq 0 then colors = reverse(colors,1)
+			if keyword_set(ctswitch) then begin
+				if i eq 0 then begin	
+					if keyword_set(log) then begin
+						ct_part_len[i+1] = floor(256.*(alog10(ctswitch)-alog10(rngmin))/(alog10(rngmax) - alog10(rngmin)))	
+					endif else begin
+						ct_part_len[i+1] = floor(256.*(ctswitch - rngmin)/(rngmax - rngmin))	
+					endelse
+				endif else begin
+					if keyword_set(log) then begin
+						ct_part_len[i+1] = floor(256.*(alog10(rngmax)-alog10(ctswitch))/(alog10(rngmax) - alog10(rngmin)))	
+					endif else begin
+						ct_part_len[i+1] = floor(256.*(rngmax - ctswitch)/(rngmax - rngmin))	
+					endelse
+				endelse
+			endif else begin
+				ct_part_len[i+1] = floor(256./n_elements(my_ct))
+			endelse
+			if reverse_ct eq 1 then begin
+				custom_ct[ct_part_len[i]:ct_part_len[i]+ct_part_len[i+1]-1,*] = reverse(colors[floor(dindgen(ct_part_len[i+1])*256./ct_part_len[i+1]),*])
+			endif else begin
+				custom_ct[ct_part_len[i]:ct_part_len[i]+ct_part_len[i+1]-1,*] = colors[floor(dindgen(ct_part_len[i+1])*256./ct_part_len[i+1]),*]
+			endelse
+		endfor
+	endif
 
 	if (special eq 'revolve_z') then begin
 		tmpslice = reform(slice)
@@ -254,6 +267,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, $
 			refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, $
 			particles=particles
+		if (n_elements(scaleval) ne 0) then newthrslice = newthrslice*scaleval
 		thrslice[*,*,*,i] = newthrslice
 	endfor
 
@@ -265,6 +279,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			load_flash_var, contourslice, filename, contours.var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, refcoor=refcoor, $
 				orbinfo=orbinfo,particles=particles
+			if (n_elements(scaleval) ne 0) then contourslice = contourslice*scaleval
 			contourslice = reform(contourslice)
 		;endif
 	endif
@@ -277,15 +292,15 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		for j=0,slice_dims[1]-1 do begin
 		for k=0,slice_dims[2]-1 do begin
 			d = sqrt((xcoords[i]-exx)^2. + (ycoords[j]-exy)^2.)
-			if (d le exr) then slice[i,j,k] = rangemin
+			if (d le exr) then slice[i,j,k] = rngmin
 		endfor
 		endfor
 		endfor
 	endif
 
 	if n_elements(thrvar) eq 0 then begin
-		if keyword_set(rangemin) then min_val = rangemin else min_val = min(slice)
-		if keyword_set(rangemax) then max_val = rangemax else max_val = max(slice)
+		if n_elements(rangemin) ne 0 then min_val = rngmin else min_val = min(slice)
+		if n_elements(rangemax) ne 0 then max_val = rngmax else max_val = max(slice)
 	endif else begin
 		indices = indgen(n_elements(slice))
 		for i=0,n_elements(thrvar)-1 do begin
@@ -324,22 +339,21 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 	
 	if n_elements(symrange) eq 0 then begin
-		if n_elements(rangemin) ne 0 then min_val = rangemin
-		if n_elements(rangemax) ne 0 then max_val = rangemax
+		if n_elements(rangemin) ne 0 then min_val = rngmin
+		if n_elements(rangemax) ne 0 then max_val = rngmax
 	endif else begin
 		if n_elements(rangemin) ne 0 then begin
-			min_val = rangemin
-			max_val = -rangemin
+			min_val = rngmin
+			max_val = -rngmin
 		endif else if n_elements(rangemax) ne 0 then begin
-			min_val = -rangemax
-			max_val = rangemax
+			min_val = -rngmax
+			max_val = rngmax
 		endif
 		if n_elements(rangemin) eq 0 and n_elements(rangemax) eq 0 then begin
 			min_val = -max([abs(min_val),abs(max_val)])
 			max_val = -min_val
 		endif
 	endelse
-
 
 	if n_elements(thrvar) gt 0 then begin
 		for i=0,slice_dims[0]-1 do begin
@@ -351,7 +365,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 								if n_elements(rangemin) eq 0 then begin
 									slice[i,j,k] = min_val
 								endif else begin
-									slice[i,j,k] = rangemin
+									slice[i,j,k] = rngmin
 								endelse
 								if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
 								if n_elements(fieldvarx) ne 0 then begin
@@ -364,7 +378,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 								if n_elements(rangemin) eq 0 then begin
 									slice[i,j,k] = min_val
 								endif else begin
-									slice[i,j,k] = rangemin
+									slice[i,j,k] = rngmin
 								endelse
 								if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
 							endif
@@ -393,21 +407,46 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice = reform(newslice)
 	endif
 
+	if (special eq 'column_x' or special eq 'column_y' or special eq 'column_z') then begin
+		if n_elements(rangemin) ne 0 then begin
+			indices = where(slice eq rngmin, count, /l64)
+			if count ne 0 then slice[indices] = 0.e0
+		endif
+	endif
+
 	if (special eq 'column_x') then begin
 		slice = total(slice, 1)*(xcoords[1]-xcoords[0])
+		if n_elements(rangemin) ne 0 then begin
+			indices = where(slice eq 0.e0, count, /l64)
+			if count ne 0 then slice[indices] = rngmin
+		endif
+		if keyword_set(contours) then begin
+			indices = where(contourslice eq min_cont_val, count, /l64)
+			if count ne 0 then contourslice[indices] = 0.e0
+			contourslice = total(contourslice, 1)*(xcoords[1]-xcoords[0])
+			indices = where(contourslice eq 0.e0, count, /l64)
+			if count ne 0 then contourslice[indices] = min_cont_val
+		endif
 	endif
 	if (special eq 'column_y') then begin
 		slice = total(slice, 2)*(ycoords[1]-ycoords[0])
+		if n_elements(rangemin) ne 0 then begin
+			indices = where(slice eq 0.e0, count, /l64)
+			if count ne 0 then slice[indices] = rngmin
+		endif
+		if keyword_set(contours) then begin
+			indices = where(contourslice eq min_cont_val, count, /l64)
+			if count ne 0 then contourslice[indices] = 0.e0
+			contourslice = total(contourslice, 2)*(ycoords[1]-ycoords[0])
+			indices = where(contourslice eq 0.e0, count, /l64)
+			if count ne 0 then contourslice[indices] = min_cont_val
+		endif
 	endif
 	if (special eq 'column_z') then begin
-		if keyword_set(rangemin) then begin
-			indices = where(slice eq rangemin, count, /l64)
-			if count ne 0 then slice[indices] = 0.e0
-		endif
 		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
-		if keyword_set(rangemin) then begin
+		if n_elements(rangemin) ne 0 then begin
 			indices = where(slice eq 0.e0, count, /l64)
-			if count ne 0 then slice[indices] = rangemin
+			if count ne 0 then slice[indices] = rngmin
 		endif
 		if keyword_set(contours) then begin
 			indices = where(contourslice eq min_cont_val, count, /l64)
@@ -419,23 +458,23 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 
 	if n_elements(rangemin) ne 0 then begin
-		minindices = where(slice lt rangemin, count)
-		if count ne 0 then slice[minindices] = rangemin
+		minindices = where(slice lt rngmin, count)
+		if count ne 0 then slice[minindices] = rngmin
 	endif
 	if n_elements(rangemax) ne 0 then begin
-		if keyword_set(lmin) then begin
-			maxindices = where(slice gt rangemax, count)
-			if count ne 0 then slice[maxindices] = rangemax
-			minindices = where(-slice gt rangemax, count)
-			if count ne 0 then slice[minindices] = rangemax
+		if n_elements(lmin) ne 0 then begin
+			maxindices = where(slice gt rngmax, count)
+			if count ne 0 then slice[maxindices] = rngmax
+			minindices = where(-slice gt rngmax, count)
+			if count ne 0 then slice[minindices] = rngmax
 		endif else begin
-			maxindices = where(slice gt rangemax, count)
-			if count ne 0 then slice[maxindices] = rangemax
+			maxindices = where(slice gt rngmax, count)
+			if count ne 0 then slice[maxindices] = rngmax
 		endelse
 	endif
 
 	if keyword_set(log) then begin
-		if ~keyword_set(lmin) then begin
+		if n_elements(lmin) eq 0 then begin
 			min_pos = min(slice[where(slice gt 0.0, /L64)])
 			tmp_indx = where(slice le 0.0)
 			if tmp_indx[0] ne -1 then slice[tmp_indx] = min_pos
@@ -452,12 +491,12 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endelse
 	endif
 
-	if keyword_set(rangemin) then begin
-		plot_min = rangemin
+	if n_elements(rangemin) ne 0 then begin
+		plot_min = rngmin
 		if keyword_set(log) then plot_min = alog10(plot_min)	
 	endif else plot_min = min(slice)
-	if keyword_set(rangemax) then begin
-		plot_max = rangemax
+	if n_elements(rangemax) ne 0 then begin
+		plot_max = rngmax
 		if keyword_set(log) then plot_max = alog10(plot_max)	
 	endif else plot_max = max(slice)
 
@@ -465,8 +504,18 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	set_plot, 'z'
 	plotcolor = fsc_color('white',/nodisplay)
 	!P.background = fsc_color('black',/nodisplay)
-	if keyword_set(exactsize) then imgsizex = floor(double(slice_dims[0])/(pos[2]-pos[0]))*exactmult
-	if ~keyword_set(imgsizey) then imgsizey = floor(double(slice_dims[1])/double(slice_dims[0])*imgsizex)
+
+	if (special eq 'column_x') then begin
+		if keyword_set(exactsize) then imgsizex = floor(double(slice_dims[1])/(pos[2]-pos[0]))*exactmult
+		if ~keyword_set(imgsizey) then imgsizey = floor(double(slice_dims[2])/double(slice_dims[1])*imgsizex)
+	endif else if (special eq 'column_y') then begin
+		if keyword_set(exactsize) then imgsizex = floor(double(slice_dims[0])/(pos[2]-pos[0]))*exactmult
+		if ~keyword_set(imgsizey) then imgsizey = floor(double(slice_dims[2])/double(slice_dims[0])*imgsizex)
+	endif else begin
+		if keyword_set(exactsize) then imgsizex = floor(double(slice_dims[0])/(pos[2]-pos[0]))*exactmult
+		if ~keyword_set(imgsizey) then imgsizey = floor(double(slice_dims[1])/double(slice_dims[0])*imgsizex)
+	endelse
+
 	if output ne 'x' then begin
 		logf = ''
 		if keyword_set(log) then logf = '_log'
@@ -649,11 +698,28 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endcase
 	endif
 
-	if n_elements(contourslice) gt 0 then begin
-		tvlct, contours.colortable[*,0], contours.colortable[*,1], contours.colortable[*,2]
-		contour, contourslice, levels=(1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val, $
-			/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=contours.colorindex, /closed
-	endif
+	if (keyword_set(contours)) then begin
+		if contours.log eq 1 then begin
+			contourlevels = 1.e1^((1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(alog10(max_cont_val)-alog10(min_cont_val))+alog10(min_cont_val))
+		endif else begin
+			contourlevels = (1-(reverse(dindgen(contours.num)+1)/(double(contours.num)+1.)))*(max_cont_val-min_cont_val)+min_cont_val
+		endelse
+
+		if n_elements(contourslice) gt 0 then begin
+			loadct, contours.ct, ncolors=contours.num, bottom=3, rgb_table = colortable
+			tvlct, colortable[*,0], colortable[*,1], colortable[*,2]
+			colorindices = indgen(contours.num)
+			if contours.fill eq 1 then begin
+				contour, contourslice, levels=contourlevels, $
+					/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=colorindices, /fill, /closed
+				contour, contourslice, levels=contourlevels, $
+					/noerase, xstyle=1+4, ystyle=1+4, position=pos, color=cgColor('black'), /closed
+			endif else begin
+				contour, contourslice, levels=contourlevels, $
+					/noerase, xstyle=1+4, ystyle=1+4, position=pos, c_colors=colorindices, /closed
+			endelse
+		endif
+	end
 
 	case sliceplane of
 		'x': begin
