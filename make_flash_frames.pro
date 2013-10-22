@@ -110,7 +110,8 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 	if ((n_elements(xrange) eq 2 and $
 		n_elements(yrange) eq 2 and $
 		n_elements(zrange) eq 2) and $
-		special ne 'revolve_z' and special ne 'column_z') then vol = 1
+		special ne 'revolve_z' and special ne 'column_x' and $
+		special ne 'column_y' and special ne 'column_z') then vol = 1
 
 	if (n_elements(xrange) eq 1) then xrange = [xrange, xrange]
 	if (n_elements(yrange) eq 1) then yrange = [yrange, yrange]

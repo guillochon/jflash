@@ -4,7 +4,8 @@ function jloaddata, filename, var, $
                    XCOORDS=x, YCOORDS=y, ZCOORDS=z, $
                    XLCOORD=xl, XRCOORD=xr, $
                    XRANGE=xrange, YRANGE=yrange, ZRANGE=zrange, $
-                   TIME=time, UNIFORM_1D=uniform_1d
+                   TIME=time, UNIFORM_1D=uniform_1d, $
+				   PARTICLES=particles
 
 ;
 ; simple proceedure to read a single variable (or derived variable), var,
@@ -51,10 +52,10 @@ itype = determine_file_type(filename)
 
 if (double) then begin
     jread_amr, filename, VAR_NAME=var, $
-      TREE=tree, DATA=unk, PARAMETERS=params
+      TREE=tree, DATA=unk, PARAMETERS=params, PARTICLES=particles
 endif else begin
     jread_amr, filename, VAR_NAME=var, $
-      TREE=tree, DATA=unk, PARAMETERS=params
+      TREE=tree, DATA=unk, PARAMETERS=params, PARTICLES=particles
 endelse
 
 time = params.time

@@ -200,14 +200,14 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 				load_flash_var, tmpslice, filename, var[i], xrange, yrange, zrange, dens=dens, temp=temp, $
 					velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 					xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
-					trackfile=trackfile, memefficient=memefficient
+					trackfile=trackfile, memefficient=memefficient,particles=particles
 				if i eq 0 then slice = tmpslice else slice = slice*tmpslice
 			endfor
 		endif else begin
 			load_flash_var, slice, filename, var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, $
 				xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, refcoor=refcoor, special=special, base_state=base_state, orbinfo=orbinfo, $
-				trackfile=trackfile, memefficient=memefficient
+				trackfile=trackfile, memefficient=memefficient,particles=particles
 		endelse
 	endif else begin
 		slice = extdata
@@ -230,9 +230,9 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	if keyword_set(fieldvarx) then begin
 		load_flash_var, fieldslicex, filename, fieldvarx, xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
+			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor,particles=particles
 		load_flash_var, fieldslicey, filename, fieldvary, xrange, yrange, zrange, dens=dens, temp=temp, $
-			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor
+			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, time=time, simsize=simsize, subtractavg=subtractavgi, refcoor=refcoor,particles=particles
 	endif
 
 	slice = reform(slice)
@@ -252,7 +252,8 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	for i=0,n_elements(thrvar)-1 do begin
 		load_flash_var, newthrslice, filename, thrvar[i], xrange, yrange, zrange, dens=dens, temp=temp, $
 			velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, $
-			refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
+			refcoor=refcoor, orbinfo=orbinfo, xcoords=xcoords, ycoords=ycoords, zcoords=zcoords, $
+			particles=particles
 		thrslice[*,*,*,i] = newthrslice
 	endfor
 
@@ -263,7 +264,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		;if n_elements(contourslice) eq 0 then begin
 			load_flash_var, contourslice, filename, contours.var, xrange, yrange, zrange, dens=dens, temp=temp, $
 				velx=velx, vely=vely, velz=velz, gpot=gpot, sample=sample, lwant=lwant, simsize=simsize, refcoor=refcoor, $
-				orbinfo=orbinfo
+				orbinfo=orbinfo,particles=particles
 			contourslice = reform(contourslice)
 		;endif
 	endif
@@ -513,21 +514,6 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	erase, color=fsc_color('black',/nodisplay)
 	polyfill, [1.0,1.0,0.0,0.0,1.0], [1.0,0.0,0.0,1.0,1.0], /normal, color=fsc_color('black',/nodisplay)
 
-	if keyword_set(ptpos) then begin
-		mysym = findgen(49) * (!pi*2/48.)  
-		usersym, cos(mysym), sin(mysym), thick=3.0, /fill
-		sympos = [pos[0] + (pos[2] - pos[0])*(ptpos[0] - xrange[0])/(xrange[1] - xrange[0]), $
-				  pos[1] + (pos[3] - pos[1])*(ptpos[1] - yrange[0])/(yrange[1] - yrange[0])]
-		th = 2.0*!dpi/100.0*dindgen(101) 
-		if n_elements(ptradius) EQ 0 then begin
-			r = 0.02 
-		endif else begin
-			r = ptradius/(xrange[1]-xrange[0])
-		endelse
-		ptx = r*cos(th)
-		pty = r*sin(th) 
-	endif
-
 	case sliceplane of
 		'x': begin
 			;pos[0] = pos[0] + (pos[2] - pos[0])*(ycoords[0] - yrange[0])/(ycoords[n_elements(ycoords)-1] - ycoords[0])
@@ -585,12 +571,12 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 				if special eq 'velyzrot' then begin
 					load_flash_var, dens, filename, 'dens', xrange, yrange, zrange, dens=dens, temp=temp, $
-						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor
+						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor,particles=particles
 					load_flash_var, vely, filename, 'vely', xrange, yrange, zrange, dens=dens, temp=temp, $
 						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, $
-						zcoords=zcoords, ycoords=ycoords, refcoor=refcoor
+						zcoords=zcoords, ycoords=ycoords, refcoor=refcoor,particles=particles
 					load_flash_var, velz, filename, 'velz', xrange, yrange, zrange, dens=dens, temp=temp, $
-						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor
+						velx=velx, vely=vely, velz=velz, gpot=gpot, log=log, sample=sample, lwant=lwant, time=time, simsize=simsize, refcoor=refcoor,particles=particles
 					vely = reform(vely)
 					vely = vely - avg(vely[where(temp lt 1e5)])
 					velz = reform(velz)
@@ -693,10 +679,44 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		plots, 0.0d0, 0.0d0, psym=8, symsize=min([xrange[1]-xrange[0],yrange[1]-yrange[0]])*0.05, color=fsc_color('blue'), /data
 	endif
 
+	num_particles = 0
 	if keyword_set(ptpos) then begin
-		polyfill, sympos[0]+ptx, sympos[1]+pty, color=fsc_color('blue'), /normal, _EXTRA=extra
+		num_particles = 1
 	endif
 
+	if keyword_set(particles) then begin
+		num_particles = n_elements(particles)
+	endif
+
+	for i=0,num_particles-1 do begin
+		if keyword_set(ptpos) then begin
+			point = ptpos
+		endif else begin
+			point = [particles[i].posx, particles[i].posy, particles[i].posz]
+		endelse
+		mysym = findgen(49) * (!pi*2/48.)  
+		usersym, cos(mysym), sin(mysym), thick=3.0, /fill
+		if (sliceplane eq 'x') then begin
+			sympos = [pos[0] + (pos[2] - pos[0])*(point[1] - yrange[0])/(yrange[1] - yrange[0]), $
+					  pos[1] + (pos[3] - pos[1])*(point[2] - zrange[0])/(zrange[1] - zrange[0])]
+		endif else if (sliceplane eq 'y') then begin
+			sympos = [pos[0] + (pos[2] - pos[0])*(point[0] - xrange[0])/(xrange[1] - xrange[0]), $
+					  pos[1] + (pos[3] - pos[1])*(point[2] - zrange[0])/(zrange[1] - zrange[0])]
+		endif else if (sliceplane eq 'z') then begin
+			sympos = [pos[0] + (pos[2] - pos[0])*(point[0] - xrange[0])/(xrange[1] - xrange[0]), $
+					  pos[1] + (pos[3] - pos[1])*(point[1] - yrange[0])/(yrange[1] - yrange[0])]
+		endif
+		th = 2.0*!dpi/100.0*dindgen(101) 
+		if n_elements(ptradius) EQ 0 then begin
+			r = 0.02 
+		endif else begin
+			r = ptradius/(xrange[1]-xrange[0])
+		endelse
+		ptx = r*cos(th)
+		pty = r*sin(th)*(xrange[1]-xrange[0])/(yrange[1]-yrange[0])
+
+		polyfill, sympos[0]+ptx, sympos[1]+pty, color=fsc_color('blue'), /normal, _EXTRA=extra
+	endfor
 
     if ~keyword_set(hidetime) then begin
 		if annotatepos eq 'flip' then begin
