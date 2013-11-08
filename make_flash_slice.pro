@@ -49,6 +49,8 @@
 ; memefficient  (bool)              - Deallocate variables as soon as they are not needed.
 ; hideaxes      (bool)              - Do not show axes.
 ; showblocks    (bool)              - Show block boundaries
+; regrid
+; gausswidth
 
 pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
     simsize=simsize,slicetype=slicetype,rangemin=rangemin,$
@@ -60,7 +62,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	annotatepos=annotatepos,output=output,special=special,hideaxes=hideaxes,negative=negative,subtractavg=subtractavg,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
 	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,$
-	timeunit=timeunit,hideimage=hideimage,useextrema=useextrema,scaleval=scaleval
+	timeunit=timeunit,hideimage=hideimage,useextrema=useextrema,scaleval=scaleval,regrid=regrid,gausswidth=gausswidth
 
     compile_opt idl2
     fname = filename
@@ -499,6 +501,19 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		plot_max = rngmax
 		if keyword_set(log) then plot_max = alog10(plot_max)	
 	endif else plot_max = max(slice)
+
+	if keyword_set(regrid) then begin
+		ncx = round((xrange[1] - xrange[0])/regrid)
+		ncy = round((yrange[1] - yrange[0])/regrid)
+		ncz = round((zrange[1] - zrange[0])/regrid)
+		slice = congrid(reform(slice), ncx, ncy, ncz, /center, cubic=-0.5)		
+		slice_dims = size(slice, /dimensions)
+	endif
+
+	if keyword_set(gausswidth) then begin
+		kerw = gausswidth / (xrange[1] - xrange[0]) * double(slice_dims[0])
+		slice = filter_image(slice,FWHM_GAUSSIAN=kerw)
+	endif
 
 	thisDevice = !D.NAME
 	set_plot, 'z'
