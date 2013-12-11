@@ -751,7 +751,9 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 
 	if keyword_set(particles) then begin
-		num_particles = n_elements(particles)
+		if particles ne 1 then begin
+			num_particles = n_elements(particles)
+		endif
 	endif
 
 	for i=0,num_particles-1 do begin
