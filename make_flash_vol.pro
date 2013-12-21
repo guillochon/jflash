@@ -62,7 +62,7 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 	boxaxes=boxaxes,memefficient=memefficient,hideaxes=hideaxes,zoom=zoom,boxscale=boxscale,$
 	xticks=xticks,yticks=yticks,zticks=zticks,custom_rot=custom_rot,hidecolorbar=hidecolorbar,mirror=mirror,$
 	ctswitch=ctswitch,hideticklabels=hideticklabels,extdata=extdata,relaxes=relaxes,oversample=oversample,$
-	lwant=lwant
+	lwant=lwant,negative=negative
 
     compile_opt idl2
 	if n_elements(ax) eq 0 then ax = 30
@@ -153,6 +153,8 @@ pro make_flash_vol,filename,var,my_ct,xrange,yrange,zrange,ax=ax,az=az,hidetime=
 			xcoords=xcoords, ycoords=ycoords, zcoords=zcoords
 		thrslice[*,*,*,i] = newthrslice
 	endfor
+
+	if keyword_set(negative) then slice = (-1.0)*temporary(slice)
 
 	if n_elements(thrvar) eq 0 then begin
 		if keyword_set(rangemin) then min_val = rangemin else min_val = min(slice)
