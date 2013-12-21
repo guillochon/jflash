@@ -189,7 +189,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 	if (n_elements(rangemin) ne 0) then begin
 		if (keyword_set(useextrema)) then begin
-			rngmin = rangemin*max(slice)
+			rngmin = rangemin*min(slice)
 		endif else rngmin = rangemin
 	endif
 
@@ -300,38 +300,35 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endfor
 	endif
 
-	if n_elements(thrvar) eq 0 then begin
-		if n_elements(rangemin) ne 0 then min_val = rngmin else min_val = min(slice)
-		if n_elements(rangemax) ne 0 then max_val = rngmax else max_val = max(slice)
-	endif else begin
-		indices = indgen(n_elements(slice))
+	if (~keyword_set(rangemin) or ~keyword_set(rangemax)) and keyword_set(thrvar) then begin
+		indices = indgen(n_elements(slice), /long)
 		for i=0,n_elements(thrvar)-1 do begin
 			if thrtype[i] eq 'max' then begin
-				newindices = where(reform(thrslice[*,*,*,i]) le thrval[i], lcount)
+				newindices = where(reform(thrslice[*,*,*,i]) le thrval[i], /null, /l64)
 			endif else begin
-				newindices = where(reform(thrslice[*,*,*,i]) ge thrval[i], lcount)
+				newindices = where(reform(thrslice[*,*,*,i]) ge thrval[i], /null, /l64)
 			endelse
-			if lcount gt 0 then begin
-				indices = -1
-				break
-			endif else begin
-				indices = cmset_op(indices, 'AND', newindices)
-			endelse
+			indices = cmset_op(indices, 'AND', newindices)
 		endfor
-		if indices[0] ne -1 then begin
+	endif
+
+	if keyword_set(rangemin) then begin
+		min_val = rngmin
+	endif else begin
+		if keyword_set(thrvar) then begin
 			min_val = min(slice[indices])
-			max_val = max(slice[indices])
-			if n_elements(fieldslicex) ne 0 then begin
-				min_fieldx_val = min(abs(fieldslicex[indices]))
-				min_fieldy_val = min(abs(fieldslicey[indices]))
-			endif
 		endif else begin
 			min_val = min(slice)
+		endelse
+	endelse
+
+	if keyword_set(rangemax) then begin
+		max_val = rngmax
+	endif else begin
+		if keyword_set(thrvar) then begin
+			max_val = max(slice[indices])
+		endif else begin
 			max_val = max(slice)
-			if n_elements(fieldslicex) ne 0 then begin
-				min_fieldx_val = min(abs(fieldslicex))
-				min_fieldy_val = min(abs(fieldslicey))
-			endif
 		endelse
 	endelse
 
@@ -358,37 +355,49 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endelse
 
 	if n_elements(thrvar) gt 0 then begin
-		for i=0,slice_dims[0]-1 do begin
-			for j=0,slice_dims[1]-1 do begin
-				for k=0,slice_dims[2]-1 do begin
+		;for i=0,slice_dims[0]-1 do begin
+		;	for j=0,slice_dims[1]-1 do begin
+		;		for k=0,slice_dims[2]-1 do begin
 					for l=0,n_elements(thrvar)-1 do begin
 						if thrtype[l] eq 'max' then begin
-							if thrslice[i,j,k,l] gt thrval[l] then begin
-								if n_elements(rangemin) eq 0 then begin
-									slice[i,j,k] = min_val
-								endif else begin
-									slice[i,j,k] = rngmin
-								endelse
-								if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
-								if n_elements(fieldvarx) ne 0 then begin
-									fieldslicex[i,j,k] = min_fieldx_val
-									fieldslicey[i,j,k] = min_fieldy_val
-								endif
-							endif
+							slice[where(reform(thrslice[*,*,*,l]) gt thrval[l], /null, /l64)] = 0.d0
+							;if thrslice[i,j,k,l] gt thrval[l] then begin
+							;	if keyword_set(log) then begin
+							;		slice[i,j,k] = 1.d-100
+							;	endif else begin
+							;		slice[i,j,k] = 0.d0
+							;	endelse
+							;	;if n_elements(rangemin) eq 0 then begin
+							;	;	slice[i,j,k] = min_val
+							;	;endif else begin
+							;	;	slice[i,j,k] = rngmin
+							;	;endelse
+							;	if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
+							;	if n_elements(fieldvarx) ne 0 then begin
+							;		fieldslicex[i,j,k] = min_fieldx_val
+							;		fieldslicey[i,j,k] = min_fieldy_val
+							;	endif
+							;endif
 						endif else begin
-							if thrslice[i,j,k,l] lt thrval[l] then begin
-								if n_elements(rangemin) eq 0 then begin
-									slice[i,j,k] = min_val
-								endif else begin
-									slice[i,j,k] = rngmin
-								endelse
-								if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
-							endif
+							slice[where(reform(thrslice[*,*,*,l]) lt thrval[l], /null, /l64)] = 0.d0
+							;if thrslice[i,j,k,l] lt thrval[l] then begin
+							;	if keyword_set(log) then begin
+							;		slice[i,j,k] = 1.d-100
+							;	endif else begin
+							;		slice[i,j,k] = 0.d0
+							;	endelse
+							;	;if n_elements(rangemin) eq 0 then begin
+							;	;	slice[i,j,k] = min_val
+							;	;endif else begin
+							;	;	slice[i,j,k] = rngmin
+							;	;endelse
+							;	if keyword_set(contours) ne 0 then contourslice[i,j,k] = min_cont_val
+							;endif
 						endelse
 					endfor
-				endfor
-			endfor
-		endfor
+		;		endfor
+		;	endfor
+		;endfor
 	endif
 
 	if slicetype eq 'major' or slicetype eq 'minor' then begin
@@ -409,12 +418,12 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice = reform(newslice)
 	endif
 
-	if (special eq 'column_x' or special eq 'column_y' or special eq 'column_z') then begin
-		if n_elements(rangemin) ne 0 then begin
-			indices = where(slice eq rngmin, count, /l64)
-			if count ne 0 then slice[indices] = 0.e0
-		endif
-	endif
+	;if (special eq 'column_x' or special eq 'column_y' or special eq 'column_z') then begin
+	;	if n_elements(rangemin) ne 0 then begin
+	;		indices = where(slice eq rngmin, count, /l64)
+	;		if count ne 0 then slice[indices] = 0.e0
+	;	endif
+	;endif
 
 	if (special eq 'column_x') then begin
 		slice = total(slice, 1)*(xcoords[1]-xcoords[0])
@@ -448,10 +457,10 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		slice = total(slice, 3)*(zcoords[1]-zcoords[0])
 		slice_dims = size(slice, /dimensions)
 		slice_dims = [slice_dims, 1]
-		if n_elements(rangemin) ne 0 then begin
-			indices = where(slice eq 0.e0, count, /l64)
-			if count ne 0 then slice[indices] = rngmin
-		endif
+		;if n_elements(rangemin) ne 0 then begin
+		;	indices = where(slice eq 0.e0, count, /l64)
+		;	if count ne 0 then slice[indices] = rngmin
+		;endif
 		if keyword_set(contours) then begin
 			indices = where(contourslice eq min_cont_val, count, /l64)
 			if count ne 0 then contourslice[indices] = 0.e0
@@ -783,17 +792,19 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 
 	if keyword_set(particles) then begin
-		if particles ne 1 then begin
+		if tag_exist(particles, 'posx') then begin
 			num_particles = n_elements(particles)
 		endif
 	endif
 
 	for i=0,num_particles-1 do begin
+		; Remove this line in general, just hiding one particle for G2
+		;if (particles[i].mass lt 1.0d30) then continue
 		if keyword_set(ptpos) then begin
 			point = ptpos
-		endif else begin
+		endif else if num_particles gt 0 then begin
 			point = [particles[i].posx, particles[i].posy, particles[i].posz]
-		endelse
+		endif
 		mysym = findgen(49) * (!pi*2/48.)  
 		usersym, cos(mysym), sin(mysym), thick=3.0, /fill
 		if (sliceplane eq 'x') then begin
@@ -839,10 +850,11 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(custom_ct) ne 0 then tvlct, custom_ct else tvlct, red, green, blue
 	if min_val ne max_val and ~keyword_set(hidecolorbar) then begin
 		if annotatepos eq 'flip' then begin
-			colorbar_pos=[0.18, 0.75 + 0.13*(double(slice_dims[1])/double(slice_dims[0])-1.0), 0.21, 0.91]
+			colorbar_pos=[0.18, 0.75 + 0.13*min([1.0,(double(slice_dims[1])/double(slice_dims[0])-1.0)]), 0.21, 0.91]
 		endif else begin
-			colorbar_pos=[0.89, 0.75 + 0.13*(double(slice_dims[1])/double(slice_dims[0])-1.0), 0.92, 0.91]
+			colorbar_pos=[0.89, 0.75 + 0.13*min([1.0,(double(slice_dims[1])/double(slice_dims[0])-1.0)]), 0.92, 0.91]
 		endelse
+		print, colorbar_pos
 		fsc_colorbar, /vertical, minrange=plot_min, $
 			maxrange=plot_max, position=colorbar_pos, /nodisplay,$
 			annotatecolor=colorbarcolor, format='(G10.3)', charsize=charsize*min([imgsizex,imgsizey])/1000.
