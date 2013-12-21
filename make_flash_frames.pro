@@ -209,7 +209,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				revolvetype=revolvetype,imgsizex=imgsizex,imgsizey=imgsizey,fprefix=fprefix,thrtype=thrtype,special=special,$
 				simsize=simsize,cellsize=cellsize,boxaxes=boxaxes,hideaxes=hideaxes,zoom=curfly[2],boxscale=boxscale,ctswitch=ctswitch,$
 				xticks=xticks,yticks=yticks,zticks=zticks,custom_rot=custom_rot,hidecolorbar=hidecolorbar,hidetime=hidetime,mirror=mirror,$
-				relaxes=relaxes,oversample=oversample
+				relaxes=relaxes,oversample=oversample,negative=negative
 			
 			if keyword_set(flythrough) then begin
 				if i eq start then flythrough = [[0.0,0.0,0.0,start],[flythrough]]
