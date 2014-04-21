@@ -4,7 +4,7 @@ function jloaddata, filename, var, $
                    XCOORDS=x, YCOORDS=y, ZCOORDS=z, $
                    XLCOORD=xl, XRCOORD=xr, $
                    XRANGE=xrange, YRANGE=yrange, ZRANGE=zrange, $
-                   TIME=time, UNIFORM_1D=uniform_1d, $
+                   TIME=time, DT=dt, UNIFORM_1D=uniform_1d, $
 				   PARTICLES=particles
 
 ;
@@ -59,6 +59,7 @@ endif else begin
 endelse
 
 time = params.time
+dt = params.dt
 
 ; set the ranges
 if n_elements(xrange) EQ 0 then begin

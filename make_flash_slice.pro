@@ -850,9 +850,9 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	if n_elements(custom_ct) ne 0 then tvlct, custom_ct else tvlct, red, green, blue
 	if min_val ne max_val and ~keyword_set(hidecolorbar) then begin
 		if annotatepos eq 'flip' then begin
-			colorbar_pos=[0.18, 0.75 + 0.13*min([1.0,(double(slice_dims[1])/double(slice_dims[0])-1.0)]), 0.21, 0.91]
+			colorbar_pos=[0.18, 0.75, 0.21, 0.91]
 		endif else begin
-			colorbar_pos=[0.89, 0.75 + 0.13*min([1.0,(double(slice_dims[1])/double(slice_dims[0])-1.0)]), 0.92, 0.91]
+			colorbar_pos=[0.89, 0.75, 0.92, 0.91]
 		endelse
 		print, colorbar_pos
 		fsc_colorbar, /vertical, minrange=plot_min, $
