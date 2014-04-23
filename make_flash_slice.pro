@@ -62,18 +62,30 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	annotatepos=annotatepos,output=output,special=special,hideaxes=hideaxes,negative=negative,subtractavg=subtractavg,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
 	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,$
-	timeunit=timeunit,hideimage=hideimage,useextrema=useextrema,scaleval=scaleval,regrid=regrid,gausswidth=gausswidth
+	timeunit=timeunit,hideimage=hideimage,useextrema=useextrema,scaleval=scaleval,regrid=regrid,gausswidth=gausswidth,$
+	fsuffix=fsuffix
 
     compile_opt idl2
     fname = filename
 	if n_elements(pos) eq 0 then begin
 		if keyword_set(hideaxes) then pos = [0.0, 0.0, 1.0, 1.0] else pos = [0.08, 0.07, 0.95, 0.94]
 	endif
-	if n_elements(simsize) eq 0 then simsize = xr[1] - xr[0]
+	if n_elements(simsize) eq 0 then begin
+		if n_elements(xr) eq 2 then begin
+			simsize = xr[1] - xr[0]
+		endif
+		if n_elements(yr) eq 2 then begin
+			simsize = yr[1] - yr[0]
+		endif
+		if n_elements(zr) eq 2 then begin
+			simsize = zr[1] - zr[0]
+		endif
+	endif
 	if n_elements(slicetype) eq 0 then slicetype = 'plane'
 	if n_elements(colorbarcolor) eq 0 then colorbarcolor = 'white'
 	if n_elements(imgsizex) eq 0 then imgsizex = 1000
 	if n_elements(fprefix) eq 0 then fprefix = ''
+	if n_elements(fsuffix) eq 0 then fsuffix = ''
 	if n_elements(thrtype) eq 0 and n_elements(thrvar) gt 0 then thrtype=make_array(n_elements(thrvar),/string,value='min')
    	if n_elements(exactmult) eq 0 then exactmult = 1.0
 	if n_elements(datatime) ne 0 then time = datatime
@@ -563,7 +575,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		for i=0,n_elements(var)-1 do begin
 			varname = varname + var[i]	
 		endfor
-		output_name = fprefix+varname+'_'+slicetype+'_'+sliceplane+logf+'_'+filename+'.ps'
+		output_name = fprefix+varname+'_'+slicetype+'_'+sliceplane+logf+fsuffix+'_'+filename+'.ps'
 		jps_start, filename=output_name,xsize=imgsizex/100.,ysize=imgsizey/100.
 	endif else begin
 		set_plot, thisDevice
