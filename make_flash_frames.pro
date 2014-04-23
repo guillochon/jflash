@@ -91,7 +91,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 	ctswitch=ctswitch,mirror=mirror,hideticklabels=hideticklabels,rminstep=rminstep,rminlstep=rminlstep,excision=excision,$
 	fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,refcoor=refcoor,absval=absval,trackfile=trackfile,showblocks=showblocks,$
 	showrelaxes=showrelaxes,oversample=oversample,orbinfo=orbinfo,showpt=showpt,ptradius=ptradius,timeunit=timeunit,useextrema=useextrema,$
-	scaleval=scaleval,hideimage=hideimage,regrid=regrid,gausswidth=gausswidth
+	scaleval=scaleval,hideimage=hideimage,regrid=regrid,gausswidth=gausswidth,scanstep=scanstep,scandir=scandir
 
 	compile_opt idl2
 	if n_elements(indexlength) eq 0 then indexlength = 4
@@ -111,6 +111,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 	if ((n_elements(xrange) eq 2 and $
 		n_elements(yrange) eq 2 and $
 		n_elements(zrange) eq 2) and $
+		~keyword_set(scanstep) and $
 		special ne 'revolve_z' and special ne 'column_x' and $
 		special ne 'column_y' and special ne 'column_z') then vol = 1
 
@@ -190,6 +191,18 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			xr = xrange
 			yr = yrange
 			zr = zrange
+			if keyword_set(scanstep) then begin
+				if ~keyword_set(scandir) then scandir = 'x'
+				if scandir eq 'x' then begin
+					nscans = round((xr[1] - xr[0])/scanstep) + 1
+				endif
+				if scandir eq 'y' then begin
+					nscans = round((yr[1] - yr[0])/scanstep) + 1
+				endif
+				if scandir eq 'z' then begin
+					nscans = round((zr[1] - zr[0])/scanstep) + 1
+				endif
+			endif else nscans = 1
 		endif else begin
 			jread_amr, filename, var_name='none', parameters=params
 			time = params.time
@@ -221,16 +234,36 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				endfor
 			endif
 		endif else begin
-			make_flash_slice,filename,var,my_ct,xr,yr,zr,simsize=simsize,slicetype=slicetype,$
-				rangemin=rangemin,rangemax=rangemax,contours=contours,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,$
-				log=log,colorbarcolor=colorbarcolor,imgsizex=imgsizex,imgsizey=imgsizey,hidetime=hidetime,$
-				fprefix=fprefix,exactsize=exactsize,exactmult=exactmult,charsize=charsize,xticks=xticks,yticks=yticks,$
-				ambval=ambval,symrange=symrange,lmin=lmin,annotatepos=annotatepos,output=output,hidecolorbar=hidecolorbar,$
-				special=special,negative=negative,subtractavg=subtractavg,thrtype=thrtype,hideaxes=hideaxes,ctswitch=ctswitch,$
-				excision=excision,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,absval=absval,refcoor=refcoor,$
-				showblocks=showblocks,relaxes=relaxes,base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,$
-				memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,timeunit=timeunit,useextrema=useextrema,scaleval=scaleval,$
-				hideimage=hideimage,regrid=regrid,gausswidth=gausswidth
+			for j=1,nscans do begin
+				xxr = xr
+				yyr = yr
+				zzr = zr
+				if keyword_set(scanstep) then begin
+					if scandir eq 'x' then begin
+						val = xr[0] + (xr[1] - xr[0])/nscans*(j-1)
+						xxr = [val, val]
+						fsuffix = '_scan_' + string(j-1, format='(I04)')
+					endif
+					if scandir eq 'y' then begin
+						val = yr[0] + (yr[1] - yr[0])/nscans*(j-1)
+						yyr = [val, val]
+					endif
+					if scandir eq 'z' then begin
+						val = zr[0] + (zr[1] - zr[0])/nscans*(j-1)
+						zzr = [val, val]
+					endif
+				endif
+				make_flash_slice,filename,var,my_ct,xxr,yyr,zzr,simsize=simsize,slicetype=slicetype,$
+					rangemin=rangemin,rangemax=rangemax,contours=contours,thrvar=thrvar,thrval=thrval,sample=sample,lwant=lwant,$
+					log=log,colorbarcolor=colorbarcolor,imgsizex=imgsizex,imgsizey=imgsizey,hidetime=hidetime,$
+					fprefix=fprefix,exactsize=exactsize,exactmult=exactmult,charsize=charsize,xticks=xticks,yticks=yticks,$
+					ambval=ambval,symrange=symrange,lmin=lmin,annotatepos=annotatepos,output=output,hidecolorbar=hidecolorbar,$
+					special=special,negative=negative,subtractavg=subtractavg,thrtype=thrtype,hideaxes=hideaxes,ctswitch=ctswitch,$
+					excision=excision,fieldvarx=fieldvarx,fieldvary=fieldvary,fieldmax=fieldmax,absval=absval,refcoor=refcoor,$
+					showblocks=showblocks,relaxes=relaxes,base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,$
+					memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,timeunit=timeunit,useextrema=useextrema,scaleval=scaleval,$
+					hideimage=hideimage,regrid=regrid,gausswidth=gausswidth,fsuffix=fsuffix
+			endfor
 		endelse
 		fsc_undefine, filename
 		if keyword_set(rminstep) then rangemin = rangemin + rminstep
