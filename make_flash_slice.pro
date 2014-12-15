@@ -63,7 +63,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	ctswitch=ctswitch,excision=excision,product=product,refcoor=refcoor,absval=absval,showblocks=showblocks,relaxes=relaxes,$
 	base_state=base_state,orbinfo=orbinfo,trackfile=trackfile,memefficient=memefficient,ptpos=ptpos,ptradius=ptradius,$
 	timeunit=timeunit,hideimage=hideimage,useextrema=useextrema,scaleval=scaleval,regrid=regrid,gausswidth=gausswidth,$
-	fsuffix=fsuffix
+	fsuffix=fsuffix,minpartmass=minpartmass
 
     compile_opt idl2
     fname = filename
@@ -100,6 +100,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			return
 		endif
 	endif
+	if n_elements(minpartmass) eq 0 then minpartmass = 0.0
    	if output ne 'x' then nowindow = 1
 	if (n_elements(xr) eq 1 or xr[0] eq xr[1]) then begin
 		sliceplane = 'x'
@@ -810,8 +811,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 	endif
 
 	for i=0,num_particles-1 do begin
-		; Remove this line in general, just hiding one particle for G2
-		;if (particles[i].mass lt 1.0d30) then continue
+		if (particles[i].mass lt minpartmass) then continue
 		if keyword_set(ptpos) then begin
 			point = ptpos
 		endif else if num_particles gt 0 then begin
