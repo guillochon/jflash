@@ -197,12 +197,16 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 
 	if (n_elements(rangemax) ne 0) then begin
 		if (keyword_set(useextrema)) then begin
-			rngmax = rangemax*max(slice)
+			maxslice = max(slice)
+			rngmax = maxslice
+			rngmin = rangemax*maxslice
 		endif else rngmax = rangemax
 	endif
 	if (n_elements(rangemin) ne 0) then begin
 		if (keyword_set(useextrema)) then begin
-			rngmin = rangemin*min(slice)
+			minslice = min(slice)
+			rngmin = minslice
+			rngmax = rangemin*minslice
 		endif else rngmin = rangemin
 	endif
 
