@@ -200,6 +200,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 			maxslice = max(slice)
 			rngmax = maxslice
 			rngmin = rangemax*maxslice
+			print, rngmin, rngmax
 		endif else rngmax = rangemax
 	endif
 	if (n_elements(rangemin) ne 0) then begin
@@ -329,7 +330,7 @@ pro make_flash_slice,filename,var,my_ct,xr,yr,zr,$
 		endfor
 	endif
 
-	if keyword_set(rangemin) then begin
+	if keyword_set(rangemin) or (keyword_set(rangemax) and keyword_set(useextrema)) then begin
 		min_val = rngmin
 	endif else begin
 		if keyword_set(thrvar) then begin
