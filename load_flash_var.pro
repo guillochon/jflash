@@ -29,7 +29,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	;First load base variables if necessary
 	if var eq 'temp' or var eq 'entropy' or var eq 'machz' or var eq 'ipres' or $
    		var eq 'gpresz' or var eq 'gpresyzmag' or var eq 'pp' or var eq 'cno' or var eq 'he' or var eq 'nuc' or $
-		var eq 'gpresz_tidez' then begin
+		var eq 'gpresz_tidez' or var eq 'imagbeta' then begin
 		if n_elements(temp) eq 0 then begin
 			temp = (jloaddata(filename,'temp',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
 		endif
@@ -43,7 +43,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 					 'si28dens','s32dens','ar36dens','ca40dens','ti44dens','cr48dens','fe52dens','fe54dens','ni56dens','neutdens',$
 					 'protdens','gpotener','eintener','torque','torqmom','mach','csnd','acom','acomx','acomy','acomz','mass',$
 					 'selfbound','kinpresratio','kinpresdiff','enuctot','a20a32dens','a36a56dens','cfl','mominertia','jeans',$
-					 'dens2', 'ecoodens']) ge 1 then begin
+					 'dens2', 'ecoodens', 'valf', 'imagbeta']) ge 1 then begin
 		if n_elements(dens) eq 0 then begin
 			dens = jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -321,6 +321,24 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		prot = jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,particles=particles,dt=dt)
 		slice = dens*prot
 	endif
+	if total(var eq ['magx','valf','imagp','imagbeta']) ge 1 then begin
+		if n_elements(magx) eq 0 then begin
+			magx = jloaddata(filename,'magx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
+		endif
+		dims = size(magx, /dimensions)
+	endif
+	if total(var eq ['magy','valf','imagp','imagbeta']) ge 1 then begin
+		if n_elements(magy) eq 0 then begin
+			magy = jloaddata(filename,'magy',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
+		endif
+		dims = size(magy, /dimensions)
+	endif
+	if total(var eq ['magz','valf','imagp','imagbeta']) ge 1 then begin
+		if n_elements(magz) eq 0 then begin
+			magz = jloaddata(filename,'magz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
+		endif
+		dims = size(magz, /dimensions)
+	endif
 
 	if n_elements(dims) gt 0 then begin
 		if sliceplane eq 'x' then begin
@@ -407,6 +425,14 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		slice = slice/distmat
 		print, dims, size(slice, /dimensions)
 	endif
+	if var eq 'imagp' then begin
+		slice = 0.5/(4.0*!pi)*(magx^2 + magy^2 + magz^2)
+	endif
+	if var eq 'valf' then begin
+		; not sure on units
+		magcon = 0.125663706
+		slice = sqrt(magx^2 + magy^2 + magz^2)/sqrt(magcon*dens)
+	endif
 	if var eq 'gpotener' then begin
 		slice = dens*gpot
 	endif
@@ -467,6 +493,9 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	endif
 	if var eq 'ipres' then begin
 		slice = dens * temp * 82544092.3
+	endif
+	if var eq 'imagbeta' then begin
+		slice = dens * temp * 82544092.3 / (0.5/(4.0*!pi)*(magx^2 + magy^2 + magz^2))
 	endif
 	if var eq 'csnd' then begin
 		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
