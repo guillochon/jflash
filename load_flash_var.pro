@@ -505,7 +505,15 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	if var eq 'cfl' then begin
 		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
 		csnd = sqrt(gamc*pres/dens)
-		slice = (xcoords[1] - xcoords[0])/(csnd + max(abs([[[velx]], [[vely]], [[velz]]]), dimension=3))
+		if n_elements(xcoords) gt 1 then begin
+			dx = xcoords[1] - xcoords[0]
+		endif else if n_elements(ycoords) gt 1 then begin
+			dx = ycoords[1] - ycoords[0]
+		endif else begin
+			dx = zcoords[1] - zcoords[0]
+		endelse
+
+		slice = dx/(csnd + max(abs([[[velx]], [[vely]], [[velz]]]), dimension=3))
 	endif
 	if var eq 'jeans' then begin
 		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
