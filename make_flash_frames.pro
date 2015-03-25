@@ -243,15 +243,17 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 					if scandir eq 'x' then begin
 						val = xr[0] + (xr[1] - xr[0])/nscans*(j-1)
 						xxr = [val, val]
-						fsuffix = '_scan_' + string(j-1, format='(I04)')
+						fsuffix = '_scan_x_' + string(j-1, format='(I04)')
 					endif
 					if scandir eq 'y' then begin
 						val = yr[0] + (yr[1] - yr[0])/nscans*(j-1)
 						yyr = [val, val]
+						fsuffix = '_scan_y_' + string(j-1, format='(I04)')
 					endif
 					if scandir eq 'z' then begin
 						val = zr[0] + (zr[1] - zr[0])/nscans*(j-1)
 						zzr = [val, val]
+						fsuffix = '_scan_z_' + string(j-1, format='(I04)')
 					endif
 				endif
 				make_flash_slice,filename,var,my_ct,xxr,yyr,zzr,simsize=simsize,slicetype=slicetype,$
