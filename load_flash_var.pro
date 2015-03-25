@@ -321,7 +321,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		prot = jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,particles=particles,dt=dt)
 		slice = dens*prot
 	endif
-	if total(var eq ['magx','valf','imagp','imagbeta']) ge 1 then begin
+	if total(var eq ['magx','valf','imagp','imagbeta','divbratio']) ge 1 then begin
 		if n_elements(magx) eq 0 then begin
 			magx = jloaddata(filename,'magx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -330,7 +330,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 			if keyword_set(memefficient) then slice = temporary(magx) else slice = magx
 		endif
 	endif
-	if total(var eq ['magy','valf','imagp','imagbeta']) ge 1 then begin
+	if total(var eq ['magy','valf','imagp','imagbeta','divbratio']) ge 1 then begin
 		if n_elements(magy) eq 0 then begin
 			magy = jloaddata(filename,'magy',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -339,13 +339,22 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 			if keyword_set(memefficient) then slice = temporary(magy) else slice = magy
 		endif
 	endif
-	if total(var eq ['magz','valf','imagp','imagbeta']) ge 1 then begin
+	if total(var eq ['magz','valf','imagp','imagbeta','divbratio']) ge 1 then begin
 		if n_elements(magz) eq 0 then begin
 			magz = jloaddata(filename,'magz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
 		dims = size(magz, /dimensions)
 		if var eq 'magz' then begin
 			if keyword_set(memefficient) then slice = temporary(magz) else slice = magz
+		endif
+	endif
+	if total(var eq ['divb','divbratio']) ge 1 then begin
+		if n_elements(divb) eq 0 then begin
+			divb = jloaddata(filename,'divb',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
+		endif
+		dims = size(divb, /dimensions)
+		if var eq 'divb' then begin
+			if keyword_set(memefficient) then slice = temporary(divb) else slice = divb
 		endif
 	endif
 
@@ -433,6 +442,9 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		slice = sqrt(newvelx^2. + newvely^2.)
 		slice = slice/distmat
 		print, dims, size(slice, /dimensions)
+	endif
+	if var eq 'divbratio' then begin
+		slice = divb / sqrt(magx^2 + magy^2 + magz^2)
 	endif
 	if var eq 'imagp' then begin
 		slice = 0.5/(4.0*!pi)*(magx^2 + magy^2 + magz^2)
