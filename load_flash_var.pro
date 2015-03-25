@@ -326,18 +326,27 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 			magx = jloaddata(filename,'magx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
 		dims = size(magx, /dimensions)
+		if var eq 'magx' then begin
+			if keyword_set(memefficient) then slice = temporary(magx) else slice = magx
+		endif
 	endif
 	if total(var eq ['magy','valf','imagp','imagbeta']) ge 1 then begin
 		if n_elements(magy) eq 0 then begin
 			magy = jloaddata(filename,'magy',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
 		dims = size(magy, /dimensions)
+		if var eq 'magy' then begin
+			if keyword_set(memefficient) then slice = temporary(magy) else slice = magy
+		endif
 	endif
 	if total(var eq ['magz','valf','imagp','imagbeta']) ge 1 then begin
 		if n_elements(magz) eq 0 then begin
 			magz = jloaddata(filename,'magz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
 		dims = size(magz, /dimensions)
+		if var eq 'magz' then begin
+			if keyword_set(memefficient) then slice = temporary(magz) else slice = magz
+		endif
 	endif
 
 	if n_elements(dims) gt 0 then begin
