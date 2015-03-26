@@ -554,7 +554,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	if var eq 'machz' then begin
 		slice = abs(velz) / sqrt(138574524.*temp)
 	endif
-	if var eq 'acom' or var eq 'acomx' or var eq 'acomy' or var eq 'acomz' then begin
+	if var eq 'acom' or var eq 'acomx' or var eq 'acomy' or var eq 'acomz' or var eq 'radius' then begin
 		csize = xcoords[1]-xcoords[0]
 		coeff = g*csize^3.
 		dx = xcoords - simsize/2.
@@ -568,6 +568,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		if var eq 'acomx' then slice = coeff*dens*dx/dr^3.
 		if var eq 'acomy' then slice = coeff*dens*dy/dr^3.
 		if var eq 'acomz' then slice = coeff*dens*dz/dr^3.
+		if var eq 'radius' then slice = dr
 	endif	
 	if var eq 'bhbound' then begin
 		coeff = g*m
