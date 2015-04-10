@@ -29,7 +29,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	;First load base variables if necessary
 	if var eq 'temp' or var eq 'entropy' or var eq 'machz' or var eq 'ipres' or $
    		var eq 'gpresz' or var eq 'gpresyzmag' or var eq 'pp' or var eq 'cno' or var eq 'he' or var eq 'nuc' or $
-		var eq 'gpresz_tidez' or var eq 'imagbeta' then begin
+		var eq 'gpresz_tidez' or var eq 'imagbeta' or var eq 'imach' then begin
 		if n_elements(temp) eq 0 then begin
 			temp = (jloaddata(filename,'temp',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
 		endif
@@ -43,7 +43,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 					 'si28dens','s32dens','ar36dens','ca40dens','ti44dens','cr48dens','fe52dens','fe54dens','ni56dens','neutdens',$
 					 'protdens','gpotener','eintener','torque','torqmom','mach','csnd','acom','acomx','acomy','acomz','mass',$
 					 'selfbound','kinpresratio','kinpresdiff','enuctot','a20a32dens','a36a56dens','cfl','mominertia','jeans',$
-					 'dens2', 'ecoodens', 'valf', 'imagbeta','macha','radius']) ge 1 then begin
+					 'dens2', 'ecoodens', 'valf', 'imagbeta','macha','radius','imach']) ge 1 then begin
 		if n_elements(dens) eq 0 then begin
 			dens = jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -55,7 +55,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	if var eq 'velx' or var eq 'velxy' or var eq 'angvel' or var eq 'angmom' or var eq 'angmomdens' or var eq 'torqmom' or var eq 'cfl' or $
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' or $
-		var eq 'macha' or var eq 'vortz' or var eq 'vortzmagp' then begin
+		var eq 'macha' or var eq 'vortz' or var eq 'vortzmagp' or var eq 'imach'  then begin
 		if n_elements(velx) eq 0 then begin
 			velx = double(jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
@@ -66,7 +66,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	if var eq 'vely' or var eq 'velxy' or var eq 'angvel' or var eq 'angmom' or var eq 'angmomdens' or var eq 'torqmom' or var eq 'cfl' or $
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' or $
-		var eq 'macha' or var eq 'vortz' or var eq 'vortzmagp' then begin
+		var eq 'macha' or var eq 'vortz' or var eq 'vortzmagp' or var eq 'imach' then begin
 		if n_elements(vely) eq 0 then begin
 			vely = double(jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
@@ -76,7 +76,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	endif
 	if var eq 'velz' or var eq 'absvelz' or var eq 'mach' or var eq 'machz' or var eq 'vtot' or var eq 'vtot2' or var eq 'shock' or var eq 'cfl' or $
 		var eq 'gvelzz' or var eq 'bhbound' or var eq 'kine' or var eq 'momentum' or var eq 'selfbound' or var eq 'macha' or $
-		var eq 'kinpresratio' or var eq 'kinpresdiff' then begin
+		var eq 'kinpresratio' or var eq 'kinpresdiff' or var eq 'imach' then begin
 		if n_elements(velz) eq 0 then begin
 			velz = double(jloaddata(filename,'velz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
@@ -528,10 +528,14 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		slice = 0.5*dens*(velx^2. + vely^2. + velz^2.)-pres
 	endif
 	if var eq 'ipres' then begin
-		slice = dens * temp * 82544092.3
+		mu = 0.6
+		pres = dens * temp / mp * kb / mu
+		slice = dens * temp
 	endif
 	if var eq 'imagbeta' then begin
-		slice = dens * temp * 82544092.3 / (0.5/(4.0*!pi)*(magx^2 + magy^2 + magz^2))
+		mu = 0.6
+		pres = dens * temp / mp * kb / mu
+		slice = pres / (0.5/(4.0*!pi)*(magx^2 + magy^2 + magz^2))
 	endif
 	if var eq 'csnd' then begin
 		gamc = reform(jloaddata(filename,'gamc',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
@@ -558,8 +562,14 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	endif
 	if var eq 'mach' then begin
 		;slice = sqrt(velx^2 + vely^2 + velz^2) / sqrt(138574524.*temp)
-		gam = 4./3.
-		slice = sqrt(velx^2 + vely^2 + velz^2) / sqrt(gam*2.52192246e-15*pres/dens)
+		gam = 5./3.
+		slice = sqrt(velx^2 + vely^2 + velz^2) / sqrt(gam*pres/dens)
+	endif
+	if var eq 'imach' then begin
+		gam = 5./3.
+		mu = 0.6
+		pres = dens * temp / mp * kb / mu
+		slice = sqrt(velx^2 + vely^2 + velz^2) / sqrt(gam*pres/dens)
 	endif
 	if var eq 'macha' then begin
 		slice = sqrt((velx^2 + vely^2 + velz^2) / ((magx^2 + magy^2 + magz^2)/(4.0*!pi*dens)))
