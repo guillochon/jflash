@@ -43,7 +43,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 					 'si28dens','s32dens','ar36dens','ca40dens','ti44dens','cr48dens','fe52dens','fe54dens','ni56dens','neutdens',$
 					 'protdens','gpotener','eintener','torque','torqmom','mach','csnd','acom','acomx','acomy','acomz','mass',$
 					 'selfbound','kinpresratio','kinpresdiff','enuctot','a20a32dens','a36a56dens','cfl','mominertia','jeans',$
-					 'dens2', 'ecoodens', 'valf', 'imagbeta','macha']) ge 1 then begin
+					 'dens2', 'ecoodens', 'valf', 'imagbeta','macha','radius']) ge 1 then begin
 		if n_elements(dens) eq 0 then begin
 			dens = jloaddata(filename,'dens',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -55,7 +55,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	if var eq 'velx' or var eq 'velxy' or var eq 'angvel' or var eq 'angmom' or var eq 'angmomdens' or var eq 'torqmom' or var eq 'cfl' or $
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' or $
-		var eq 'macha' then begin
+		var eq 'macha' or var eq 'vortz' or var eq 'vortzmagp' then begin
 		if n_elements(velx) eq 0 then begin
 			velx = double(jloaddata(filename,'velx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
@@ -66,7 +66,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	if var eq 'vely' or var eq 'velxy' or var eq 'angvel' or var eq 'angmom' or var eq 'angmomdens' or var eq 'torqmom' or var eq 'cfl' or $
 		var eq 'angvelx' or var eq 'angvely' or var eq 'mach' or var eq 'vtot' or var eq 'vtotxy' or var eq 'vtot2' or var eq 'shock' or $
 		var eq 'bhbound' or var eq 'kine' or var eq 'kineskew' or var eq 'momentum' or var eq 'selfbound' or var eq 'kinpresratio' or var eq 'kinpresdiff' or $
-		var eq 'macha' then begin
+		var eq 'macha' or var eq 'vortz' or var eq 'vortzmagp' then begin
 		if n_elements(vely) eq 0 then begin
 			vely = double(jloaddata(filename,'vely',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,$
 				xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt))
@@ -126,6 +126,12 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	endif
 
 	;Special cases
+	if var eq 'vortz' then begin
+        xy = pdiv(velx, 2, order = 1)
+        yx = pdiv(vely, 1, order = 1)
+        
+        slice = yx - xy     
+	endif
 	if var eq 'dens2' then begin
 		slice = dens^2.
 		dims = size(slice, /dimensions)
@@ -323,7 +329,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 		prot = jloaddata(filename,'prot',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,particles=particles,dt=dt)
 		slice = dens*prot
 	endif
-	if total(var eq ['magx','valf','imagp','imagbeta','macha','divbratio']) ge 1 then begin
+	if total(var eq ['magx','valf','imagp','imagbeta','macha','divbratio','vortzmagp']) ge 1 then begin
 		if n_elements(magx) eq 0 then begin
 			magx = jloaddata(filename,'magx',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -332,7 +338,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 			if keyword_set(memefficient) then slice = temporary(magx) else slice = magx
 		endif
 	endif
-	if total(var eq ['magy','valf','imagp','imagbeta','macha','divbratio']) ge 1 then begin
+	if total(var eq ['magy','valf','imagp','imagbeta','macha','divbratio','vortzmagp']) ge 1 then begin
 		if n_elements(magy) eq 0 then begin
 			magy = jloaddata(filename,'magy',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -341,7 +347,7 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 			if keyword_set(memefficient) then slice = temporary(magy) else slice = magy
 		endif
 	endif
-	if total(var eq ['magz','valf','imagp','imagbeta','macha','divbratio']) ge 1 then begin
+	if total(var eq ['magz','valf','imagp','imagbeta','macha','divbratio','vortzmagp']) ge 1 then begin
 		if n_elements(magz) eq 0 then begin
 			magz = jloaddata(filename,'magz',xrange=xrange,yrange=yrange,zrange=zrange,sample=sample,lwant=lwant,time=time,xcoords=xcoords,ycoords=ycoords,zcoords=zcoords,particles=particles,dt=dt)
 		endif
@@ -420,6 +426,13 @@ pro load_flash_var, slice, filename, var, xrange, yrange, $
 	endif
 
 	;Now create derived variables if necessary
+	if var eq 'vortzmagp' then begin
+        xy = pdiv(velx, 2, order = 1)
+        yx = pdiv(vely, 1, order = 1)
+        
+        vortz = yx - xy     
+		slice = vortz/(magx^2 + magy^2 + magz^2)
+	endif
 	if var eq 'entropy' then begin ;this is the entropy per unit mass
 		slice = kb/mp*(alog(mp/double(dens)*(2*mp*!pi*kb*double(temp)/h^2)^(3.0/2.0)) + (5.0/2.0))
 	endif
