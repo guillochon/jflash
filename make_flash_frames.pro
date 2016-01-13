@@ -192,6 +192,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			xr = xrange
 			yr = yrange
 			zr = zrange
+			nscans = 1
 			if keyword_set(scanstep) then begin
 				if ~keyword_set(scandir) then scandir = 'x'
 				if scandir eq 'x' then begin
@@ -203,7 +204,7 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 				if scandir eq 'z' then begin
 					nscans = round((zr[1] - zr[0])/scanstep) + 1
 				endif
-			endif else nscans = 1
+			endif
 		endif else begin
 			jread_amr, filename, var_name='none', parameters=params
 			time = params.time
