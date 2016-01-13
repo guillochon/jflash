@@ -188,11 +188,11 @@ pro make_flash_frames,basename,start,finish,var,my_ct,xrange,yrange,zrange,simsi
 			print, "Can't find " + filename + ", skipping."
 			continue
 		endif
+		nscans = 1
 		if n_elements(trackfile) eq 0 then begin
 			xr = xrange
 			yr = yrange
 			zr = zrange
-			nscans = 1
 			if keyword_set(scanstep) then begin
 				if ~keyword_set(scandir) then scandir = 'x'
 				if scandir eq 'x' then begin
